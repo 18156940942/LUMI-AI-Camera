@@ -140,7 +140,7 @@ enum PoseGeometry {
 
         var text: String {
             let side = towardScreenRight ? "画面右侧" : "画面左侧"
-            return String(format: "头部向%@转动约 %.0f°（估算）", side, abs(degrees))
+            return String(format: "头部向%@转动约 %.0f°（估算）", side.formatObject, abs(degrees))
         }
     }
 

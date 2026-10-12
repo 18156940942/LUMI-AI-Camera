@@ -38,6 +38,7 @@
 		34BDAB59E420246EE9389F28 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BCF1AD0E75936EE69354CB /* DiagnosticsLog.swift */; };
 		9AC255EC8EE8F12691F72D90 /* DiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00CE5C1BDDD8985CAA88570 /* DiagnosticsReport.swift */; };
 		3FF8BA4102A52A5D58A708F8 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481198DE4E190260355D0E9D /* FavoritesStore.swift */; };
+		2A7D8A61782A2D2F313291AC /* FormatSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC05BA23DCBF9AAEBC3C1EA /* FormatSupport.swift */; };
 		2C78A245FF37DD6FBBD3295F /* OrientationSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D11DF6858D2D523429CD7A /* OrientationSupport.swift */; };
 		52CD80A94529E6BDB90F6319 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */; };
 		1B5541BA9C2773EB2DC8965E /* RelayProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BCD65BF17EC30DE3F8752D /* RelayProbe.swift */; };
@@ -132,6 +133,7 @@
 		30BCF1AD0E75936EE69354CB /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
 		F00CE5C1BDDD8985CAA88570 /* DiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsReport.swift; sourceTree = "<group>"; };
 		481198DE4E190260355D0E9D /* FavoritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesStore.swift; sourceTree = "<group>"; };
+		8BC05BA23DCBF9AAEBC3C1EA /* FormatSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSupport.swift; sourceTree = "<group>"; };
 		44D11DF6858D2D523429CD7A /* OrientationSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrientationSupport.swift; sourceTree = "<group>"; };
 		2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStore.swift; sourceTree = "<group>"; };
 		92BCD65BF17EC30DE3F8752D /* RelayProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayProbe.swift; sourceTree = "<group>"; };
@@ -324,6 +326,7 @@
 				30BCF1AD0E75936EE69354CB /* DiagnosticsLog.swift */,
 				F00CE5C1BDDD8985CAA88570 /* DiagnosticsReport.swift */,
 				481198DE4E190260355D0E9D /* FavoritesStore.swift */,
+				8BC05BA23DCBF9AAEBC3C1EA /* FormatSupport.swift */,
 				44D11DF6858D2D523429CD7A /* OrientationSupport.swift */,
 				2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */,
 				92BCD65BF17EC30DE3F8752D /* RelayProbe.swift */,
@@ -534,6 +537,7 @@
 				34BDAB59E420246EE9389F28 /* DiagnosticsLog.swift in Sources */,
 				9AC255EC8EE8F12691F72D90 /* DiagnosticsReport.swift in Sources */,
 				3FF8BA4102A52A5D58A708F8 /* FavoritesStore.swift in Sources */,
+				2A7D8A61782A2D2F313291AC /* FormatSupport.swift in Sources */,
 				2C78A245FF37DD6FBBD3295F /* OrientationSupport.swift in Sources */,
 				52CD80A94529E6BDB90F6319 /* PresetStore.swift in Sources */,
 				1B5541BA9C2773EB2DC8965E /* RelayProbe.swift in Sources */,

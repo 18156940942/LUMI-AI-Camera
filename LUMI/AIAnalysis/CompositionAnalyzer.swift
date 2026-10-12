@@ -118,7 +118,7 @@ enum CompositionAnalyzer {
                         kind: .objective,
                         level: .attention,
                         title: "视线方向缺少空间",
-                        detail: String(format: "实测：人物看向%@，而那一侧只剩 %.1f%% 画面宽度。视觉上会像「撞到画框」，建议把人物向反方向平移，让视线侧留出 15%% 以上空间。", sideText, lead * 100),
+                        detail: String(format: "实测：人物看向%@，而那一侧只剩 %.1f%% 画面宽度。视觉上会像「撞到画框」，建议把人物向反方向平移，让视线侧留出 15%% 以上空间。", sideText.formatObject, lead * 100),
                         confidence: confidence))
                 } else {
                     findings.append(AnalysisFinding(
@@ -126,7 +126,7 @@ enum CompositionAnalyzer {
                         kind: .objective,
                         level: .good,
                         title: "视线方向留白充足",
-                        detail: String(format: "实测：视线方向（%@）留白 %.1f%% 画面宽度。", sideText, lead * 100),
+                        detail: String(format: "实测：视线方向（%@）留白 %.1f%% 画面宽度。", sideText.formatObject, lead * 100),
                         confidence: confidence))
                 }
             }

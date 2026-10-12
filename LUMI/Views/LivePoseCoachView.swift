@@ -137,7 +137,7 @@ struct LivePoseCoachView: View {
                 if let offset = videoInput.poseReport.personCenterOffset {
                     InfoRow(label: "人物中心相对画面中线",
                             value: String(format: "%@ %.1f%%",
-                                          offset >= 0 ? "偏右" : "偏左",
+                                          (offset >= 0 ? "偏右" : "偏左").formatObject,
                                           abs(offset) * 100))
                 }
                 InfoRow(label: "是否触及画面边缘",

@@ -78,7 +78,7 @@ enum PoseCoachEngine {
                 level: .attention,
                 title: "关键点识别不稳定，暂不给角度结论",
                 detail: String(format: "综合置信度 %.0f%%，有效关键点 %d/19。识别不到的关节：%@。建议：让被摄者占画面更大比例、避免逆光、减少肢体遮挡，或把人从背景中分离出来。",
-                               report.confidence * 100, report.validJointCount, unreliable),
+                               report.confidence * 100, report.validJointCount, unreliable.formatObject),
                 confidence: report.confidence)]
         }
 
@@ -95,7 +95,7 @@ enum PoseCoachEngine {
                     kind: .objective,
                     level: .warning,
                     title: "肩线明显倾斜",
-                    detail: String(format: "实测：%@肩膀比%@低 %.1f°。这已经会让人读出「身体歪了」。建议让被摄者把%@肩膀抬起，或干脆加大侧身角度转成主动的斜线构图。", lowerSide, higherSide, absTilt),
+                    detail: String(format: "实测：%@肩膀比%@低 %.1f°。这已经会让人读出「身体歪了」。建议让被摄者把%@肩膀抬起，或干脆加大侧身角度转成主动的斜线构图。", lowerSide.formatObject, higherSide.formatObject, absTilt),
                     confidence: report.confidence))
             } else if reaches(absTilt, thresholds.shoulderTiltAttention) {
                 findings.append(AnalysisFinding(
@@ -103,7 +103,7 @@ enum PoseCoachEngine {
                     kind: .objective,
                     level: .attention,
                     title: "肩线略有倾斜",
-                    detail: String(format: "实测：%@肩膀比%@低 %.1f°。在自然松弛的方向上可以保留，但如果是正装/正式人像，建议把肩线拉平到 1° 以内。", lowerSide, higherSide, absTilt),
+                    detail: String(format: "实测：%@肩膀比%@低 %.1f°。在自然松弛的方向上可以保留，但如果是正装/正式人像，建议把肩线拉平到 1° 以内。", lowerSide.formatObject, higherSide.formatObject, absTilt),
                     confidence: report.confidence))
             } else {
                 findings.append(AnalysisFinding(
@@ -126,7 +126,7 @@ enum PoseCoachEngine {
                     kind: .objective,
                     level: .attention,
                     title: "躯干向一侧偏",
-                    detail: String(format: "实测：肩部相对髋部偏向%@ %.1f°。若想保持端正，让被摄者把胸口回正约 %.0f°；若想制造主动的倾斜造型，可以再加强到 8-10° 让意图更明确。", side, absLean, absLean),
+                    detail: String(format: "实测：肩部相对髋部偏向%@ %.1f°。若想保持端正，让被摄者把胸口回正约 %.0f°；若想制造主动的倾斜造型，可以再加强到 8-10° 让意图更明确。", side.formatObject, absLean, absLean),
                     confidence: report.confidence))
             }
         }
@@ -139,7 +139,7 @@ enum PoseCoachEngine {
                 kind: .objective,
                 level: .info,
                 title: "头部已转向一侧",
-                detail: String(format: "估算：头部向%@转动约 %.0f°。三点提醒：① 转向超过 30° 时会看不到远侧眼睛，脸会显窄，适合清冷/电影感；② 转向时脖子容易跟着前伸，让对方「把头顶往后拉一点」；③ 如需眼神交流，把下巴回正约 %.0f° 即可。", side, abs(yaw), abs(yaw) / 2),
+                detail: String(format: "估算：头部向%@转动约 %.0f°。三点提醒：① 转向超过 30° 时会看不到远侧眼睛，脸会显窄，适合清冷/电影感；② 转向时脖子容易跟着前伸，让对方「把头顶往后拉一点」；③ 如需眼神交流，把下巴回正约 %.0f° 即可。", side.formatObject, abs(yaw), abs(yaw) / 2),
                 confidence: report.confidence * 0.8))
         }
 
@@ -151,7 +151,7 @@ enum PoseCoachEngine {
                 kind: .objective,
                 level: .info,
                 title: "头部有歪斜",
-                detail: String(format: "实测：%@的眼睛更高，头部歪斜约 %.1f°。5-10° 的歪头是自然松弛感的常用手段；超过 15° 会显得刻意，可通过让对侧肩膀下沉来抵消。", side, abs(roll)),
+                detail: String(format: "实测：%@的眼睛更高，头部歪斜约 %.1f°。5-10° 的歪头是自然松弛感的常用手段；超过 15° 会显得刻意，可通过让对侧肩膀下沉来抵消。", side.formatObject, abs(roll)),
                 confidence: report.confidence))
         }
 
@@ -173,7 +173,7 @@ enum PoseCoachEngine {
                     kind: .objective,
                     level: .attention,
                     title: "人物明显偏离画面中心",
-                    detail: String(format: "实测：整个人位于中线%@ %.0f%% 画面宽度处。如果这不是刻意的偏心构图，建议把镜头平移 %.0f%% 画面宽度让人物靠近三分线，留白会更舒服。", side, absOffset * 100, absOffset * 100),
+                    detail: String(format: "实测：整个人位于中线%@ %.0f%% 画面宽度处。如果这不是刻意的偏心构图，建议把镜头平移 %.0f%% 画面宽度让人物靠近三分线，留白会更舒服。", side.formatObject, absOffset * 100, absOffset * 100),
                     confidence: report.confidence))
             } else if reaches(absOffset, thresholds.centerOffsetNotice) {
                 let side = offset > 0 ? "画面右侧" : "画面左侧"
@@ -182,7 +182,7 @@ enum PoseCoachEngine {
                     kind: .objective,
                     level: .info,
                     title: "人物略微偏心",
-                    detail: String(format: "实测：人物中心偏向%@ %.0f%% 画面宽度。偏移小于 20%% 属于可用范围，配合视线方向留白即可。", side, absOffset * 100),
+                    detail: String(format: "实测：人物中心偏向%@ %.0f%% 画面宽度。偏移小于 20%% 属于可用范围，配合视线方向留白即可。", side.formatObject, absOffset * 100),
                     confidence: report.confidence))
             }
         }
@@ -212,7 +212,7 @@ enum PoseCoachEngine {
                     kind: .heuristic,
                     level: .info,
                     title: "画面比例",
-                    detail: String(format: "实测：肩到髋的距离占画面高度 %.0f%%。%@。", torso * 100, note),
+                    detail: String(format: "实测：肩到髋的距离占画面高度 %.0f%%。%@。", torso * 100, note.formatObject),
                     confidence: report.confidence))
             }
         }

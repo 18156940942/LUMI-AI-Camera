@@ -68,7 +68,7 @@ Nikon Z6 II ──HDMI──▶ UVC 采集卡 ──USB──▶ 电脑（运行
 
 ```
 LUMI-AI-Camera/
-├── LUMI/                          # App 源码（60 个 Swift 文件）
+├── LUMI/                          # App 源码（61 个 Swift 文件）
 │   ├── App/                       # 入口、主题、全局状态
 │   ├── Models/                    # 数据模型 + 离线推荐引擎 + 姿势库
 │   ├── VideoInput/                # 三路视频输入 + 能力判定 + 预览层
