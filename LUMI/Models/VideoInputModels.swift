@@ -319,7 +319,12 @@ enum CaptureAspect: String, CaseIterable, Codable, Identifiable, Hashable {
 }
 
 /// 监看页面的参考线配置（全部可独立开关）
-struct OverlayConfiguration: Codable, Equatable {
+/// 参考线与画面的叠加配置。
+///
+/// 必须是 `Hashable`：`ShootingPreset`（拍摄预设）把它作为存储属性并声明了
+/// `Hashable`，而 Swift 只有在**所有**存储属性都可哈希时才能合成该协议。
+/// 成员全是 `Bool` / `Double` / `CaptureAspect`，都能自动合成，显式声明即可。
+struct OverlayConfiguration: Codable, Equatable, Hashable {
     var showThirds = true
     var showNineGrid = false
     var showCenterCross = false

@@ -325,9 +325,10 @@ def main() -> int:
     print(f"工程根目录：{ROOT}")
 
     validate_pose_library()
-    run_script("2/4  重新生成 Xcode 工程文件", "generate_xcodeproj.py")
-    run_script("3/4  校验 Xcode 工程结构", "validate_project.py")
-    run_script("4/4  Swift 源码交叉引用检查", "check_symbols.py", "--all")
+    run_script("2/5  重新生成 Xcode 工程文件", "generate_xcodeproj.py")
+    run_script("3/5  校验 Xcode 工程结构（含 OpenStep 文法解析）", "validate_project.py")
+    run_script("4/5  Swift 源码交叉引用检查", "check_symbols.py", "--all")
+    run_script("5/5  协议一致性检查（Hashable 合成）", "check_conformance.py")
 
     head("预检结果")
     for item in PASSED:
