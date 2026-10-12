@@ -12,15 +12,15 @@
 
 | 项 | 值 |
 |---|---|
-| CI 运行 | GitHub Actions run **#38198820127** |
-| 运行链接 | https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38198820127 |
-| 提交 | `9644981b`（本次交付源码的文件树与该提交**完全一致**，91 个文件逐一比对过 SHA） |
+| CI 运行 | GitHub Actions run **#38204726462** |
+| 运行链接 | https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38204726462 |
+| 提交 | `9174e6da`（本次交付源码的文件树与该提交**完全一致**，100 个文件逐一比对过 SHA） |
 | Runner | `macos-15` |
 | Xcode | **16.4** |
 | SDK | iPhoneOS **18.5**（部署目标 iOS 17.0） |
 | 编译结果 | **0 error** |
-| 单元测试 | **`Executed 252 tests, with 0 failures`** → `** TEST SUCCEEDED **` |
-| 总耗时 | 11 分 17 秒 |
+| 单元测试 | **`Executed 288 tests, with 0 failures`** → `** TEST SUCCEEDED **`（14 个测试类） |
+| 总耗时 | 13 分 23 秒 |
 | Bundle ID | `com.lumi.aicamera` |
 | 版本 | `1.0.0` (build 1) |
 
@@ -29,8 +29,8 @@
 装之前可以对一下，确认文件没在传输中损坏：
 
 ```
-SHA-256  30a0ee520490967094936aa85a00d4153c033f0925e2dec9b1eaacd87a1097c2
-大小     751,379 bytes (733.8 KB)
+SHA-256  fbe1012a9edf9590bebf3b736e58447ee2e90855e32fbfed395e14447770480a
+大小     822,387 bytes (803.1 KB)
 ```
 
 校验命令：
@@ -49,7 +49,7 @@ Get-FileHash LUMI-unsigned-1.0.0-1.ipa -Algorithm SHA256
 
 ```
 Payload/LUMI.app/
-├── LUMI                 ← 可执行文件，1.71 MB（arm64）
+├── LUMI                 ← 可执行文件，1.85 MB（arm64）
 ├── Info.plist           ← CFBundleIdentifier = com.lumi.aicamera
 ├── Assets.car           ← 编译后的资源与 App 图标
 ├── pose_library.json    ← 32 条离线姿势库
@@ -70,7 +70,7 @@ Payload/LUMI.app/
 
 ## ⚠️ 关于「验证状态」
 
-- ✅ **编译通过、252 个单元测试通过** —— 这是真的跑过的结果；
+- ✅ **编译通过、288 个单元测试通过** —— 这是真的跑过的结果；
 - ❌ **没有在任何真机上运行过**。延迟、耗电、发热、采集卡的实际兼容性都还是未知数。
 
 换句话说：**它能装上、能启动、逻辑是对的，但「在拍摄现场好不好用」还没人验证过。** 详见 [`../docs/04-功能完成度与已知限制.md`](../docs/04-功能完成度与已知限制.md)。
