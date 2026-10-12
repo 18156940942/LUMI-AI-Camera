@@ -72,12 +72,17 @@ API Key 从哪来
 
 火山引擎控制台 → 创作 Agent(Kickart) → API Key → +New。
 控制台地址：https://console.volcengine.com/kickart/fusion/setting/api-key
-（必须**主账号**登录；IAM 子账号方式见官方「创建火山引擎API Key」文档，
-权限限制需勾选「智能创作云」。）
+（必须**主账号**登录。）
 
-**注意**：美颜 API 按「创点」计费，需要先购买支持后付费 API 的创点套餐
+**注意 1**：美颜 API 按「创点」计费，需要先购买支持后付费 API 的创点套餐
 并开通服务权限，否则会返回权限错误。创点购买是商务流程，不是自助开通 ——
 创点购买链接需联系火山技术支持获取；遇到权限错误请找商务代表。
+
+**注意 2（实测，2026-10-13）**：「访问控制 → API 访问密钥」里的 **API Key 密钥对**
+（`ak_…` / `sk_…`）不能调本接口 —— Secret 单独、ID:Secret、Basic、V4 签名
+（服务名 ic_iam/cv/kickart/mlp 都试过）全部返回 `code 1300 auth failed`。
+虽然官方文档声称 Kickart 支持访问控制 API Key 体系，但实际不认。
+**必须用上面 Kickart 控制台页面签发的单一 Key。**
 """
 
 from __future__ import annotations
