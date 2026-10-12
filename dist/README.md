@@ -6,53 +6,54 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `LUMI-unsigned-1.0.0-32.ipa` | 未签名的真机包（arm64 / `iphoneos`），需要自签后才能装到 iPhone 上 |
+| `LUMI-unsigned-1.0.0-34.ipa` | 未签名的真机包（arm64 / `iphoneos`），需要自签后才能装到 iPhone 上 |
 
-> **文件名里的 `32` 是构建号**，等于 CI 运行号，也写进了 `CFBundleVersion`。
+> **文件名里的 `34` 是构建号**，等于 CI 运行号，也写进了 `CFBundleVersion`。
 >
 > 这一点是踩坑之后加的：以前所有构建的 `CFBundleVersion` 都是 `1`、文件名都叫
-> `LUMI-unsigned-1.0.0-32.ipa`，于是**根本分不清手上拿的是哪一版** —— 实测就发生过
+> `LUMI-unsigned-1.0.0-34.ipa`，于是**根本分不清手上拿的是哪一版** —— 实测就发生过
 > 「签完才发现签的是带缺陷的旧构建」。现在文件名自带构建号，而且装到手机之后
 > `python tools/lumi_device_log.py apps --filter lumi` 能直接读出装的是哪一次。
 
-> **本版修了三个东西**：① 应用自身日志走 `.info` 级时在设备日志流里看不到，已改为
-> default 级；② 构建号写进 `CFBundleVersion`；③ 运行期 `<Fault>`：`%@` 收到的是
-> Swift `String` 而不是对象（13 处，含姿态建议文案）。
+> **本版新增/修复**：① **「AI 精修与调色」提到首页入口**（新增精修主页：选照片、
+> 页内从相册导入、四类 × 14 条预设；在此之前功能存在但界面上找不到）；
+> ② 应用自身 `.info` 级日志在设备日志流里看不到 → 改为 default 级；
+> ③ 构建号写进 `CFBundleVersion`；④ 运行期 `<Fault>`：`%@` 收到 Swift `String`（13 处）。
 > **如果你手上是更早的构建，请换用这一版。**
 
 ## 构建来源（可复核）
 
 | 项 | 值 |
 | --- | --- |
-| CI 运行 | GitHub Actions run **#38232586237** |
-| 运行链接 | <https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38232586237> |
-| 提交 | `f573340d`（本次交付源码的文件树与该提交**完全一致**） |
+| CI 运行 | GitHub Actions run **#38235197624** |
+| 运行链接 | <https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38235197624> |
+| 提交 | `a98da552`（本次交付源码的文件树与该提交**完全一致**） |
 | Runner | `macos-15` |
 | Xcode | **16.4** |
 | SDK | iPhoneOS **18.5**（部署目标 iOS 17.0） |
 | 编译结果 | **0 error** |
 | 单元测试 | **`Executed 334 tests, with 0 failures`** → `** TEST SUCCEEDED **`（15 个套件） |
-| 总耗时 | 10 分 18 秒 |
+| 总耗时 | 5 分 38 秒 |
 | Bundle ID | `com.lumi.aicamera`（自签后会变成 `<TeamID>.com.lumi.aicamera.<TeamID>`，免费账号的常规行为） |
-| 版本 | `1.0.0` (build **32**) |
+| 版本 | `1.0.0` (build **34**) |
 
 ## 校验值
 
 装之前可以对一下，确认文件没在传输中损坏：
 
 ```
-SHA-256  9719c76af7e7d9a7198144c89c71f35ac7db5ac6a6fb47f9d839110d60c51dea
-大小     927,982 bytes (906.2 KB)
+SHA-256  567d88387bc98b9fe80f11151891967aa3ae9b0dbecb7bcc26e367e217c22181
+大小     966,693 bytes (944.0 KB)
 ```
 
 校验命令：
 
 ```bash
 # macOS / Linux
-shasum -a 256 LUMI-unsigned-1.0.0-32.ipa
+shasum -a 256 LUMI-unsigned-1.0.0-34.ipa
 
 # Windows PowerShell
-Get-FileHash LUMI-unsigned-1.0.0-32.ipa -Algorithm SHA256
+Get-FileHash LUMI-unsigned-1.0.0-34.ipa -Algorithm SHA256
 ```
 
 ## 包结构
@@ -61,8 +62,8 @@ Get-FileHash LUMI-unsigned-1.0.0-32.ipa -Algorithm SHA256
 
 ```
 Payload/LUMI.app/
-├── LUMI                   ← 可执行文件，2.06 MB（arm64）
-├── Info.plist             ← CFBundleIdentifier = com.lumi.aicamera；CFBundleVersion = 32
+├── LUMI                   ← 可执行文件，2.14 MB（arm64）
+├── Info.plist             ← CFBundleIdentifier = com.lumi.aicamera；CFBundleVersion = 34
 ├── Assets.car             ← 编译后的资源与 App 图标
 ├── pose_library.json      ← 32 条离线姿势库
 ├── retouch_presets.json   ← 14 条精修预设目录
