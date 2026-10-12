@@ -33,6 +33,28 @@ enum PoseCoachEngine {
         static let `default` = Thresholds()
     }
 
+    /// 阈值比较的浮点容差。
+    ///
+    /// 真实检测坐标是任意浮点数。把人物整体平移 0.10 画面宽度后，包围框中点减画面
+    /// 中线得到的是 `0.09999999999999998` —— 比阈值小 2e-17。若直接用 `>=` 比较，
+    /// 这个「正好落在边界上」的测量值会掉到阈值下方，让结论取决于浮点噪声，
+    /// 也违背了本项目「阈值边界算达到」的既定约定（见 PoseCoachEngineTests
+    /// 的 testGateBoundaryIsInclusive）。
+    ///
+    /// 1e-9 远小于任何有意义的测量精度（归一化坐标下相当于百万分之一像素级），
+    /// 又远大于双精度累加误差，因此只吸收噪声、不改变语义。
+    private static let thresholdEpsilon: CGFloat = 1e-9
+
+    /// `value` 是否已达到阈值（边界算达到）
+    private static func reaches(_ value: CGFloat, _ threshold: CGFloat) -> Bool {
+        value + thresholdEpsilon >= threshold
+    }
+
+    /// `value` 是否未超过阈值（边界算未超过）
+    private static func within(_ value: CGFloat, _ threshold: CGFloat) -> Bool {
+        value <= threshold + thresholdEpsilon
+    }
+
     static func tips(for report: PoseReport,
                      pose: BodyPose,
                      thresholds: Thresholds = .default) -> [AnalysisFinding] {
@@ -67,7 +89,7 @@ enum PoseCoachEngine {
             let absTilt = abs(tilt)
             let lowerSide = tilt > 0 ? "画面左侧" : "画面右侧"
             let higherSide = tilt > 0 ? "画面右侧" : "画面左侧"
-            if absTilt >= thresholds.shoulderTiltWarning {
+            if reaches(absTilt, thresholds.shoulderTiltWarning) {
                 findings.append(AnalysisFinding(
                     key: "pose-shoulder-tilt",
                     kind: .objective,
@@ -75,7 +97,7 @@ enum PoseCoachEngine {
                     title: "肩线明显倾斜",
                     detail: String(format: "实测：%@肩膀比%@低 %.1f°。这已经会让人读出「身体歪了」。建议让被摄者把%@肩膀抬起，或干脆加大侧身角度转成主动的斜线构图。", lowerSide, higherSide, absTilt),
                     confidence: report.confidence))
-            } else if absTilt >= thresholds.shoulderTiltAttention {
+            } else if reaches(absTilt, thresholds.shoulderTiltAttention) {
                 findings.append(AnalysisFinding(
                     key: "pose-shoulder-tilt",
                     kind: .objective,
@@ -97,7 +119,7 @@ enum PoseCoachEngine {
         // MARK: 躯干倾斜
         if let lean = report.torsoLeanDegrees {
             let absLean = abs(lean)
-            if absLean >= thresholds.torsoLeanAttention {
+            if reaches(absLean, thresholds.torsoLeanAttention) {
                 let side = lean > 0 ? "画面右侧" : "画面左侧"
                 findings.append(AnalysisFinding(
                     key: "pose-torso-lean",
@@ -110,7 +132,7 @@ enum PoseCoachEngine {
         }
 
         // MARK: 头部转向（估算）
-        if let yaw = report.headTurnDegrees, abs(yaw) >= thresholds.headTurnNotice {
+        if let yaw = report.headTurnDegrees, reaches(abs(yaw), thresholds.headTurnNotice) {
             let side = yaw > 0 ? "画面右侧" : "画面左侧"
             findings.append(AnalysisFinding(
                 key: "pose-head-yaw",
@@ -122,7 +144,7 @@ enum PoseCoachEngine {
         }
 
         // MARK: 头部歪斜
-        if let roll = report.headTiltDegrees, abs(roll) >= thresholds.headTiltNotice {
+        if let roll = report.headTiltDegrees, reaches(abs(roll), thresholds.headTiltNotice) {
             let side = roll > 0 ? "画面右侧" : "画面左侧"
             findings.append(AnalysisFinding(
                 key: "pose-head-roll",
@@ -144,7 +166,7 @@ enum PoseCoachEngine {
         // MARK: 人物位置
         if let offset = report.personCenterOffset {
             let absOffset = abs(offset)
-            if absOffset >= thresholds.centerOffsetBig {
+            if reaches(absOffset, thresholds.centerOffsetBig) {
                 let side = offset > 0 ? "画面右侧" : "画面左侧"
                 findings.append(AnalysisFinding(
                     key: "pose-center-offset",
@@ -153,7 +175,7 @@ enum PoseCoachEngine {
                     title: "人物明显偏离画面中心",
                     detail: String(format: "实测：整个人位于中线%@ %.0f%% 画面宽度处。如果这不是刻意的偏心构图，建议把镜头平移 %.0f%% 画面宽度让人物靠近三分线，留白会更舒服。", side, absOffset * 100, absOffset * 100),
                     confidence: report.confidence))
-            } else if absOffset >= thresholds.centerOffsetNotice {
+            } else if reaches(absOffset, thresholds.centerOffsetNotice) {
                 let side = offset > 0 ? "画面右侧" : "画面左侧"
                 findings.append(AnalysisFinding(
                     key: "pose-center-offset",
@@ -205,7 +227,7 @@ enum PoseCoachEngine {
         let pairs: [(String, CGFloat?)] = [("左臂", report.leftElbowAngle), ("右臂", report.rightElbowAngle)]
         for (label, angle) in pairs {
             guard let angle else { continue }
-            if angle >= thresholds.elbowTooStraight {
+            if reaches(angle, thresholds.elbowTooStraight) {
                 result.append(AnalysisFinding(
                     key: "pose-elbow-straight-\(label)",
                     kind: .heuristic,
@@ -213,7 +235,7 @@ enum PoseCoachEngine {
                     title: "\(label)几乎完全伸直",
                     detail: String(format: "实测肘部角度 %.0f°（越接近 180° 越直）。完全伸直的手臂在画面上会显得僵硬，建议屈 20-30°，也就是让手掌朝镜头方向轻轻内收。", angle),
                     confidence: report.confidence))
-            } else if angle <= thresholds.elbowTooClosed {
+            } else if within(angle, thresholds.elbowTooClosed) {
                 result.append(AnalysisFinding(
                     key: "pose-elbow-closed-\(label)",
                     kind: .heuristic,
@@ -221,7 +243,7 @@ enum PoseCoachEngine {
                     title: "\(label)弯曲过紧",
                     detail: String(format: "实测肘部角度 %.0f°。夹得太紧会让轮廓缩成一团，建议把手肘向外打开一些，让手臂与躯干之间留出三角形空隙。", angle),
                     confidence: report.confidence))
-            } else if angle >= 100 && angle <= 150 {
+            } else if reaches(angle, 100) && within(angle, 150) {
                 result.append(AnalysisFinding(
                     key: "pose-elbow-good-\(label)",
                     kind: .objective,
