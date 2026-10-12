@@ -4,7 +4,7 @@
 
 快门由相机按，iPhone 只负责「看」和「想」：实时监看画面、给模特具体的姿势指令、在拍摄现场实时指出肩线歪了/头顶贴边了、拍完帮你把一批照片过一遍。
 
-> **当前状态**：✅ 已在云端 macOS 真实编译通过（Xcode 16.4，0 error），单元测试 **334 / 334 通过**（`** TEST SUCCEEDED **`，15 个测试类），未签名 ipa 已产出并通过结构校验（见 [`dist/`](dist/README.md)）。✅ **已在真机上跑起来**（iPhone 15 Pro Max / iOS 26.0：内置摄像头在 App 进程内 29.998 fps 稳定出帧，无崩溃）。❌ **「现场好不好用」仍未验证** —— 延迟、耗电、发热、采集卡实际兼容性都还是未知数。详见[「当前状态」](#当前状态完成度与限制)。
+> **当前状态**：✅ 已在云端 macOS 真实编译通过（Xcode 16.4，0 error），单元测试 **342 / 342 通过**（`** TEST SUCCEEDED **`，16 个测试类），未签名 ipa 已产出并通过结构校验（见 [`dist/`](dist/README.md)）。✅ **已在真机上跑起来**（iPhone 15 Pro Max / iOS 26.0：内置摄像头在 App 进程内 29.998 fps 稳定出帧，无崩溃）。❌ **「现场好不好用」仍未验证** —— 延迟、耗电、发热、采集卡实际兼容性都还是未知数。详见[「当前状态」](#当前状态完成度与限制)。
 
 ---
 
@@ -79,7 +79,7 @@ LUMI-AI-Camera/
 │   ├── ViewModels/                # 页面状态
 │   ├── Views/                     # 全部界面
 │   └── Resources/                 # Info.plist、资源目录、姿势库 JSON
-├── LUMITests/                     # 单元测试（16 个文件 / 15 个测试类 / 334 个用例，已全部通过）
+├── LUMITests/                     # 单元测试（17 个文件 / 16 个测试类 / 342 个用例，已全部通过）
 ├── LUMI.xcodeproj/                # Xcode 工程（由脚本生成，见下）
 ├── dist/                          # 预构建的未签名 ipa（已在云端真实构建并校验，见 dist/README.md）
 ├── docs/                          # 7 份文档：可行性、构建安装、硬件连接、功能清单、测试说明、真机验收、精修管线
@@ -115,7 +115,7 @@ git push -u origin main
 
 推送后打开仓库的 **Actions** 标签页，`Build unsigned IPA` 会自动开始运行。跑完在页面底部的 **Artifacts** 里下载 `LUMI-unsigned-ipa`。
 
-> **这一步其实可以跳过**：本包已经附上一份**已在云端真实构建出来的 ipa** —— `dist/LUMI-unsigned-1.0.0-34.ipa`（来源、SHA-256 校验值、包结构见 [`dist/README.md`](dist/README.md)）。除非你改动了代码，否则不必自己再跑一遍 CI。
+> **这一步其实可以跳过**：本包已经附上一份**已在云端真实构建出来的 ipa** —— `dist/LUMI-unsigned-1.0.0-37.ipa`（来源、SHA-256 校验值、包结构见 [`dist/README.md`](dist/README.md)）。除非你改动了代码，否则不必自己再跑一遍 CI。
 
 > 想在本地 Mac 上编译也可以：`xcodebuild archive -project LUMI.xcodeproj -scheme LUMI -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/LUMI.xcarchive CODE_SIGNING_ALLOWED=NO`
 
@@ -204,7 +204,7 @@ UUID 由「类型前缀 + 相对路径」的 MD5 推出，是确定性的：同�
 
 ## 测试
 
-**已经真实跑过了**：`Executed 334 tests, with 0 failures` → `** TEST SUCCEEDED **`（Xcode 16.4 / iOS 18.5 模拟器，见 [run #38235197624](https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38235197624)）。
+**已经真实跑过了**：`Executed 342 tests, with 0 failures` → `** TEST SUCCEEDED **`（Xcode 16.4 / iOS 18.5 模拟器，见 [run #38262785052](https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38262785052)）。
 
 本地跑（需要 macOS；没有 Mac 也没关系，GitHub Actions 会自动跑）：
 
@@ -213,7 +213,7 @@ xcodebuild test -project LUMI.xcodeproj -scheme LUMI \
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
 ```
 
-16 个测试文件（15 个测试类、**334 个用例**）覆盖的都是**能用数字断言的逻辑**，不是「跑通即可」：
+17 个测试文件（16 个测试类、**342 个用例**）覆盖的都是**能用数字断言的逻辑**，不是「跑通即可」：
 
 - 几何方向约定（Vision 原点左下 vs SwiftUI 原点左上，搞反了 UI 上很难发现）
 - 推荐引擎打分（权重、排序稳定性、场景不匹配时不清空结果）
@@ -245,13 +245,13 @@ App 首次启动会展示一页隐私说明，其中逐条列出做不到的事�
 
 **✅ 已完成，并已通过云端 macOS 真实编译与测试**：全部 6 个页面、6 项核心功能、三路视频输入、离线姿势库、Vision 姿态与门控、构图分析、照片分析、设置与持久化、**设备自检与诊断导出**、单元测试、云端构建流水线与中继脚本。
 
-运行记录：[Actions run #38235197624](https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38235197624)（Xcode 16.4 / macOS 15 runner，5 分 38 秒）
+运行记录：[Actions run #38262785052](https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38262785052)（Xcode 16.4 / macOS 15 runner，6 分 38 秒）
 
 | 环节 | 结果 |
 |---|---|
 | 编译 | ✅ **通过，0 error**（iPhoneOS 18.5 SDK，部署目标 iOS 17.0） |
-| 单元测试 | ✅ **`** TEST SUCCEEDED **`** —— 15 个测试类、**334 / 334 通过**、0 失败 |
-| 未签名 ipa | ✅ 已产出并通过结构校验（`LUMI-unsigned-1.0.0-34.ipa`，可执行文件 2.14 MB，构建号 **34**） |
+| 单元测试 | ✅ **`** TEST SUCCEEDED **`** —— 16 个测试类、**342 / 342 通过**、0 失败 |
+| 未签名 ipa | ✅ 已产出并通过结构校验（`LUMI-unsigned-1.0.0-37.ipa`，可执行文件 2.27 MB，构建号 **37**） |
 | **真机运行** | ✅ **已在 iPhone 15 Pro Max / iOS 26.0 上跑起来**：从设备日志里读到内置摄像头在 App 进程内以 **29.998 fps** 稳定出帧（累计 2099 帧），切后台时采集会话干净中断，无崩溃、无强杀。证据见 [`docs/06`](docs/06-真机验收清单.md#实测运行记录2026-10-12-1731经-usb-日志流) |
 | **现场体验** | ❌ **仍未验证** —— 画面观感、AI 结论是否合理、延迟、耗电、发热、采集卡兼容性，只有你在现场能判断 |
 
