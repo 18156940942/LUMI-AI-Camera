@@ -3,6 +3,11 @@
 
 * text=auto eol=lf
 
+# Windows 批处理必须保持 CRLF。CMD 对 LF 行尾的标签跳转（goto :label）支持不可靠，
+# 而 tools/ 下的两个启动脚本正是用 goto 跳出 if 块的 —— 变成 LF 就会静默失效。
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
 # 真正的二进制（目前项目里没有，留着防误判）
 *.png binary
 *.jpg binary
