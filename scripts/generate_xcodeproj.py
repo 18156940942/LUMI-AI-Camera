@@ -146,14 +146,16 @@ class PbxProjBuilder:
         """为 app 与 test 源码按磁盘目录结构建出 group 树。"""
         for rel in self.app_sources + self.test_sources:
             parts = rel.split("/")
-            filename = parts[-1]
             dirs = parts[:-1]
             # 逐级登记 group
             for depth in range(1, len(dirs) + 1):
                 parent = "/".join(dirs[: depth - 1])
                 child = "/".join(dirs[:depth])
-                node = self._ensure_group_node(child)
-                if parent != child:
+                self._ensure_group_node(child)
+                # parent == "" 表示工程根：根组由 mainGroup 统一承载（见 section_groups），
+                # 不要凭空造一个空路径 group —— 它会被渲染成 `path = ;`，
+                # 这是 OpenStep plist 语法错误，Xcode 会直接报「工程已损坏」。
+                if parent:
                     pg = self._ensure_group_node(parent)
                     if child not in pg["subgroups"]:
                         pg["subgroups"].append(child)
@@ -165,6 +167,10 @@ class PbxProjBuilder:
         self._ensure_group_node(res_dir)
         for rel in (ASSETS_REL, POSE_LIBRARY_REL):
             self._ensure_group_node(res_dir)["files"].append(rel)
+        # Info.plist 只挂进「组」树，让它在 Xcode 侧栏里能点开编辑；
+        # 不进 Resources build phase（构建阶段列表是独立的 app_res_files）。
+        # 注意：必须真的挂进某个组的 children，否则它会变成定义却无人引用的孤儿对象。
+        self._ensure_group_node(res_dir)["files"].append(INFO_PLIST_REL)
         # 资源目录需要挂在 LUMI 下
         if res_dir not in self._ensure_group_node(APP_GROUP_DIR)["subgroups"]:
             self._ensure_group_node(APP_GROUP_DIR)["subgroups"].append(res_dir)
@@ -265,9 +271,18 @@ class PbxProjBuilder:
 
         # 每个目录一个 group
         for group_path in sorted(self.groups):
+            if not group_path:
+                # 空路径 = 工程根。根必须由 mainGroup 承载，否则会生成 `path = ;`。
+                # 宁可在生成阶段响亮报错，也不要在 Xcode 里得到「工程已损坏」。
+                raise ValueError(
+                    "发现空路径 group：根组必须由 mainGroup 承载，"
+                    "检查 build_group_tree 是否又给空 parent 建了节点"
+                )
             node = self.groups[group_path]
             gid = uid("PBXGroup", group_path)
             name = group_path.split("/")[-1]
+            if not name:
+                raise ValueError(f"group 名称为空: {group_path!r}")
             children: list[str] = []
             for sub in sorted(node["subgroups"]):
                 children.append(f"\t\t\t\t{uid('PBXGroup', sub)} /* {sub.split('/')[-1]} */,\n")

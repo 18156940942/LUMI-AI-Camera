@@ -15,6 +15,8 @@ project.pbxproj（OpenStep plist）的关键结构，把最容易出错的问题
      → 字符串切割组装 pbxproj 时极易产生「孤儿属性 / 未闭合大括号」，
        这种损坏 Xcode 同样报 "The project is damaged"，但 UUID 检查发现不了
        （第一轮 CI 就栽在这上面，所以加了这个检查）
+  6. 【语法】用真正的 OpenStep 文法解析一遍（scripts/openseplist.py）
+     → 第二轮 CI 栽在 `path = ;`（空值）上，正则同样看不见
 
 用法：
     python3 scripts/validate_project.py
@@ -28,6 +30,9 @@ import os
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import openseplist  # noqa: E402  （同目录，脚本方式运行时需要）
 
 UUID_RE = re.compile(r"\b([0-9A-F]{24})\b")
 # 「定义」= 行首缩进两个 tab 后紧跟 UUID 再跟注释（mainGroup 这类无注释的单独处理）
@@ -146,12 +151,35 @@ def main() -> int:
     text = pbxproj.read_text(encoding="utf-8")
     failures: list[str] = []
 
-    # ---------- 0. OpenStep plist 结构完整性（最先查：结构坏了后面都不可信） ----------
+    # ---------- 0a. 真正的语法解析（最先做：语法不对，后面所有检查都没意义） ----------
+    syntax_ok = True
+    try:
+        parsed = openseplist.parse(text)
+    except openseplist.PlistSyntaxError as error:
+        syntax_ok = False
+        failures.append(f"pbxproj 语法错误 → Xcode 会报「工程已损坏」：\n      {error}")
+        parsed = None
+
+    if syntax_ok and isinstance(parsed, dict):
+        objects = parsed.get("objects")
+        if not isinstance(objects, dict):
+            failures.append("解析结果里没有 objects 字典")
+        else:
+            for uuid, obj in objects.items():
+                if not isinstance(obj, dict):
+                    failures.append(f"对象 {uuid} 不是字典（实际 {type(obj).__name__}）")
+
+    # ---------- 0b. 大括号/条目结构（对语法解析的冗余保险，报错更具体） ----------
     failures.extend(check_objects_structure(text))
 
     # ---------- 1. UUID 引用完整性 ----------
     defined = collections.Counter(DEF_RE.findall(text))
-    referenced = set(UUID_RE.findall(text))
+
+    # 「被引用」必须排除定义位置本身：定义行里也会出现自己的 UUID，
+    # 若不排除，referenced 永远包含 defined，orphans 恒为空集 —— 这个 bug 真的存在过，
+    # 导致一个空路径的孤儿 group 一路溜到了云端 CI。
+    reference_text = DEF_RE.sub("", text)
+    referenced = set(UUID_RE.findall(reference_text))
 
     duplicates = [u for u, count in defined.items() if count > 1]
     if duplicates:
@@ -163,7 +191,9 @@ def main() -> int:
 
     orphans = sorted(set(defined) - referenced)
     if orphans:
-        failures.append(f"UUID 定义了但从未被引用（疑似漏挂 build phase）: {orphans}")
+        failures.append(
+            f"UUID 定义了但从未被引用（孤儿对象，通常在工程导航器里看不到）: {orphans}"
+        )
 
     # ---------- 2. 必需结构 ----------
     required_strings = {

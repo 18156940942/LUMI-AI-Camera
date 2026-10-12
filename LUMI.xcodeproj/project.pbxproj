@@ -195,15 +195,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		7F17C7F9310681D21908B10D /*  */ = {
-			isa = PBXGroup;
-			children = (
-				9AFE03FF365B97896F0B1D15 /* LUMI */,
-				DCE55295FF73EE8C3AF4BFBB /* LUMITests */,
-			);
-			path = ;
-			sourceTree = "<group>";
-		};
 		9AFE03FF365B97896F0B1D15 /* LUMI */ = {
 			isa = PBXGroup;
 			children = (
@@ -283,6 +274,7 @@
 			isa = PBXGroup;
 			children = (
 				2579A772CBC555CD40F4237B /* Assets.xcassets */,
+				E5AF9ABE5AE2B92E14A6375D /* Info.plist */,
 				C6C4A15C16BA9B2312E0955E /* pose_library.json */,
 			);
 			path = Resources;
