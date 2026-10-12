@@ -8,23 +8,23 @@
 | --------------------------- | ---------------------------------------------- |
 | `LUMI-unsigned-1.0.0-1.ipa` | 未签名的真机包（arm64 / `iphoneos`），需要自签后才能装到 iPhone 上 |
 
-> **本版修复了真机首跑时的一个缺陷**：隐私页「我已了解，进入 LUMI」按钮点不动。
-> 这是 SwiftUI 观察链断裂导致的（详见 [`../docs/06-真机验收清单.md`](../docs/06-真机验收清单.md)）。
+> **本版新增「照片精修」**（14 条预设 / 4 类），并修复了真机首跑时「隐私页按钮点不动」的缺陷。
+> 精修用法见 [`../docs/07-照片精修管线.md`](../docs/07-照片精修管线.md)。
 > **如果你手上是更早的构建，请换用这一版。**
 
 ## 构建来源（可复核）
 
 | 项         | 值                                                                           |
 | --------- | --------------------------------------------------------------------------- |
-| CI 运行     | GitHub Actions run **#38212701282**                                         |
-| 运行链接      | <https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38212701282>    |
-| 提交        | `9455efa9`（本次交付源码的文件树与该提交**完全一致**，102 个文件逐一比对过 SHA）                         |
+| CI 运行     | GitHub Actions run **#38224834015**                                         |
+| 运行链接      | <https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38224834015>    |
+| 提交        | `2703b0f7`（本次交付源码的文件树与该提交**完全一致**） |
 | Runner    | `macos-15`                                                                  |
 | Xcode     | **16.4**                                                                    |
 | SDK       | iPhoneOS **18.5**（部署目标 iOS 17.0）                                            |
 | 编译结果      | **0 error**                                                                 |
-| 单元测试      | **`Executed 288 tests, with 0 failures`** → `** TEST SUCCEEDED **`（14 个测试类） |
-| 总耗时       | 8 分 41 秒                                                                   |
+| 单元测试      | **`Executed 334 tests, with 0 failures`** → `** TEST SUCCEEDED **`（15 个测试类） |
+| 总耗时       | 6 分 18 秒                                                                   |
 | Bundle ID | `com.lumi.aicamera`                                                         |
 | 版本        | `1.0.0` (build 1)                                                           |
 
@@ -33,8 +33,8 @@
 装之前可以对一下，确认文件没在传输中损坏：
 
 ```
-SHA-256  7edd029e9e908b67d9d3fba03bf937d19c15de8aa2e0889527410b430ba82218
-大小     824,318 bytes (805.0 KB)
+SHA-256  4ab61caf8d5098ecf569a7567a8652fd44909509a353c9592aa5974fbb0b356d
+大小     927,893 bytes (906.2 KB)
 ```
 
 校验命令：
@@ -53,11 +53,12 @@ Get-FileHash LUMI-unsigned-1.0.0-1.ipa -Algorithm SHA256
 
 ```
 Payload/LUMI.app/
-├── LUMI                 ← 可执行文件，1.85 MB（arm64）
+├── LUMI                 ← 可执行文件，2.06 MB（arm64）
 ├── Info.plist           ← CFBundleIdentifier = com.lumi.aicamera
 ├── Assets.car           ← 编译后的资源与 App 图标
 ├── pose_library.json    ← 32 条离线姿势库
-└── PkgInfo
+├── PkgInfo
+└── retouch_presets.json  ← 14 条精修预设目录
 ```
 
 ## ⚠️ 关于「未签名」
