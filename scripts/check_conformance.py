@@ -324,6 +324,84 @@ def swift_files(targets: list[str]) -> list[Path]:
     return files
 
 
+# ---------------------------------------------------------------------------
+# 检查 3：actor 隔离 —— init 默认参数不能构造 @MainActor 类型
+# ---------------------------------------------------------------------------
+
+ACTOR_TYPE_RE = re.compile(
+    r"@MainActor\s*\n\s*(?:@\w+(?:\([^)]*\))?\s*\n\s*)*"
+    r"(?:public\s+|internal\s+|private\s+|final\s+|open\s+)*"
+    r"(?:class|struct|enum)\s+([A-Za-z_][A-Za-z0-9_]*)"
+)
+
+
+def main_actor_types(sources: list[Path]) -> set[str]:
+    """收集所有被类级别标注 @MainActor 的**类型**名。
+
+    注意这里只认「紧贴在类型声明之前」的 `@MainActor`。
+    标在方法前面的不算 —— 那正是本项目推荐的写法。
+    """
+    found: set[str] = set()
+    for path in sources:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for match in ACTOR_TYPE_RE.finditer(text):
+            found.add(match.group(1))
+    return found
+
+
+def init_default_constructors(text: str) -> list[tuple[int, str]]:
+    """找出 `init(...)` 参数列表里以 `= 某类型(` 形式出现的默认构造。
+
+    返回 [(行号, 类型名)]。
+    """
+    results: list[tuple[int, str]] = []
+    for match in re.finditer(r"\binit\s*\(", text):
+        # 从 init( 的左括号开始配对，取出整个参数列表
+        start = match.end() - 1
+        depth = 0
+        i = start
+        while i < len(text):
+            if text[i] == "(":
+                depth += 1
+            elif text[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        params = text[start + 1:i]
+        line_offset = text[:start].count("\n")
+        for default in re.finditer(r"=\s*([A-Za-z_][A-Za-z0-9_]*)\s*\(", params):
+            line = line_offset + params[:default.start()].count("\n") + 1
+            results.append((line, default.group(1)))
+    return results
+
+
+def check_actor_isolation(sources: list[Path], actor_types: set[str]) -> list[str]:
+    """拦下「非隔离的 init 用 @MainActor 类型做默认参数」。
+
+    这类代码编译器会直接报：
+
+        error: call to main actor-isolated initializer 'init(directory:)'
+               in a synchronous nonisolated context
+
+    它**只有编译器能发现** —— 本地没有 Swift 编译器时，代价是推一次代码、
+    等十几分钟云端构建才发现。所以在这里静态拦住。
+    """
+    problems: list[str] = []
+    if not actor_types:
+        return problems
+    for path in sources:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for line, type_name in init_default_constructors(text):
+            if type_name in actor_types:
+                problems.append(
+                    f"{path.name}:{line}  init 的默认参数构造了 @MainActor 类型 "
+                    f"`{type_name}` —— 编译会报 main actor-isolated initializer。"
+                    f"改法：去掉 `{type_name}` 的**类级** @MainActor，改成给需要的方法单独标注"
+                )
+    return problems
+
+
 def main(argv: list[str]) -> int:
     files = swift_files(argv[1:])
     if not files:
@@ -351,12 +429,18 @@ def main(argv: list[str]) -> int:
     # ---- 检查 2：初始化完整性 ----
     init_problems = check_initialization(stored, inits)
 
+    # ---- 检查 3：actor 隔离 ----
+    actor_types = main_actor_types(files)
+    actor_problems = check_actor_isolation(files, actor_types)
+
     print(f"Swift 文件    : {len(files)}")
     print(f"声明类型      : {len(protocols)}")
     print(f"检查 Hashable : {checked} 个")
     print(f"检查 init     : {len([n for n in inits if inits[n]])} 个类型")
 
-    if hashable_problems or init_problems:
+    print(f"@MainActor 类型: {len(actor_types)} 个")
+
+    if hashable_problems or init_problems or actor_problems:
         if hashable_problems:
             print("\nHashable 合成隐患：", file=sys.stderr)
             for item in hashable_problems:
@@ -365,9 +449,13 @@ def main(argv: list[str]) -> int:
             print("\n初始化不完整：", file=sys.stderr)
             for item in init_problems:
                 print(f"  ✗ {item}", file=sys.stderr)
+        if actor_problems:
+            print("\nactor 隔离问题：", file=sys.stderr)
+            for item in actor_problems:
+                print(f"  ✗ {item}", file=sys.stderr)
         return 1
 
-    print("\n✓ 协议一致性与初始化完整性检查全部通过")
+    print("\n✓ 协议一致性、初始化完整性与 actor 隔离检查全部通过")
     return 0
 
 

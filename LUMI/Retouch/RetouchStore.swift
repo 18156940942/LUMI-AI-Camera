@@ -24,7 +24,12 @@ struct RetouchRecord: Codable, Hashable {
 ///
 /// 每张照片的精修状态只有四种（见 ``RetouchJobState``）。**没有「假的成功」**：
 /// 中继连不上、出错、或者返回的不是图片，都会落到 `.failed` 并带上可读原因。
-@MainActor
+/// - Note: **不要在类级别加 `@MainActor`。**
+///   `AppState` 把它作为 `init` 的默认参数构造，而 `AppState.init` 不是 main actor
+///   隔离的 —— 类级隔离会让 `init(directory:)` 变成 main-actor 隔离，
+///   于是编译直接报「call to main actor-isolated initializer in a synchronous
+///   nonisolated context」。本项目的约定是：**Store 类不加类级隔离，只给需要
+///   在主线程序列化访问的方法加 `@MainActor`**（`PhotoLibraryStore` 也是这样）。
 final class RetouchStore: ObservableObject {
 
     /// 每张照片当前状态。界面上直接读它。
@@ -126,6 +131,7 @@ final class RetouchStore: ObservableObject {
     ///   - relayBase: 已规范化过的中继地址
     ///   - prompt: 生成式改动的文字指令
     /// - Returns: 成功与否（界面可以据此继续批处理）
+    @MainActor
     @discardableResult
     func retouch(photoID: UUID,
                  sourceData: Data,
@@ -190,6 +196,7 @@ final class RetouchStore: ObservableObject {
     }
 
     /// 丢掉某张照片的精修结果（保留原图，不影响照片本身）。
+    @MainActor
     func clearResult(for photoID: UUID) {
         guard let record = records.removeValue(forKey: photoID) else { return }
         let url = directory.appendingPathComponent(record.fileName)
@@ -200,6 +207,7 @@ final class RetouchStore: ObservableObject {
     }
 
     /// 清掉所有精修结果。
+    @MainActor
     func clearAllResults() {
         for record in records.values {
             try? FileManager.default.removeItem(
@@ -212,6 +220,7 @@ final class RetouchStore: ObservableObject {
     }
 
     /// 清掉所有状态（切库或重置时用）。
+    @MainActor
     func resetStates() {
         states.removeAll()
         runningCount = 0
@@ -221,6 +230,7 @@ final class RetouchStore: ObservableObject {
     ///
     /// 单独开一个方法而不是把 `lastMessage` 放成可写：提示语是这个类型的对外
     /// 一致性来源，不应该让每个调用方随手改。
+    @MainActor
     func reportLocalProblem(_ message: String) {
         lastMessage = message
         DiagnosticsLog.shared.error(.photo, "精修本地问题：\(message)")
