@@ -68,7 +68,7 @@ Nikon Z6 II ──HDMI──▶ UVC 采集卡 ──USB──▶ 电脑（运行
 
 ```
 LUMI-AI-Camera/
-├── LUMI/                          # App 源码（56 个 Swift 文件）
+├── LUMI/                          # App 源码（60 个 Swift 文件）
 │   ├── App/                       # 入口、主题、全局状态
 │   ├── Models/                    # 数据模型 + 离线推荐引擎 + 姿势库
 │   ├── VideoInput/                # 三路视频输入 + 能力判定 + 预览层
@@ -79,12 +79,12 @@ LUMI-AI-Camera/
 │   ├── ViewModels/                # 页面状态
 │   ├── Views/                     # 全部界面
 │   └── Resources/                 # Info.plist、资源目录、姿势库 JSON
-├── LUMITests/                     # 单元测试（15 个文件 / 14 个测试类 / 288 个用例，已全部通过）
+├── LUMITests/                     # 单元测试（16 个文件 / 15 个测试类 / 334 个用例，已全部通过）
 ├── LUMI.xcodeproj/                # Xcode 工程（由脚本生成，见下）
 ├── dist/                          # 预构建的未签名 ipa（已在云端真实构建并校验，见 dist/README.md）
-├── docs/                          # 技术可行性与风险、构建安装、硬件连接、功能清单、测试说明
+├── docs/                          # 7 份文档：可行性、构建安装、硬件连接、功能清单、测试说明、真机验收、精修管线
 ├── scripts/                       # 工程生成、结构校验、预检、CI/网络辅助（共 11 个工具）
-├── tools/                         # 电脑端 MJPEG 中继脚本
+├── tools/                         # 电脑端脚本：MJPEG 中继、精修中继、相机桥接、相机中继、真机日志
 └── .github/workflows/             # 云端 macOS 构建（产出未签名 ipa）
 ```
 

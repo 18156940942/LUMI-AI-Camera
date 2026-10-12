@@ -32,3 +32,10 @@ venv/
 
 # ---- 中继脚本运行时产生的日志 ----
 tools/*.log
+
+# ---- 真机日志工具（tools/lumi_device_log.py）下载的第三方二进制 ----
+# 约 4.3 MB，跑一次 `fetch-tools` 就能重新取回并校验 SHA-256，不必进仓库。
+tools/.imd/
+
+# ---- 真机现场日志与崩溃报告 ----
+device-logs/

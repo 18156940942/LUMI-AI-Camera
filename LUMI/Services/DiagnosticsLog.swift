@@ -193,9 +193,19 @@ final class DiagnosticsLog: ObservableObject {
         case .diagnostics: logger = AppLog.app
         }
 
+        // 注意 `.info` 走的是 `logger.log(...)`（= default/notice 级），而不是
+        // `logger.info(...)`。
+        //
+        // 原因是实测出来的：iOS 的 syslog 中继（`idevicesyslog` 走的那条）
+        // **只转发 default 及以上级别，不转发 info**。用 `logger.info` 写的话，
+        // 在没有 Mac 的 Windows 上拉设备日志时，App 自己的记录会**一条都看不到** ——
+        // 只有系统日志（采集会话、前后台切换）能看见。
+        //
+        // 这一改动让 `tools/lumi_device_log.py watch` 能真正看到 App 内部在做什么。
+        // 代价是设备日志里 info 条目也算 default 级，但它们本来就是低频的（十几处调用点）。
         switch level {
         case .debug: logger.debug("\(message, privacy: .public)")
-        case .info: logger.info("\(message, privacy: .public)")
+        case .info: logger.log("\(message, privacy: .public)")
         case .warning: logger.warning("\(message, privacy: .public)")
         case .error: logger.error("\(message, privacy: .public)")
         }

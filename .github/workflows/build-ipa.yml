@@ -145,6 +145,26 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # -----------------------------------------------------------------------
+      # 把 CFBundleVersion 写成 CI 运行号
+      #
+      # 为什么必须做：所有构建的 CFBundleVersion 原本都是 1，于是「iPhone 上装
+      # 的到底哪一次构建」完全无法辨别。实测踩过这个坑 —— 桌面上堆了 4 个同名
+      # 的 ipa，签完才发现签的是带缺陷的旧版本，白折腾一轮。
+      #
+      # 改成运行号之后有两处收益：
+      #   · ipa 文件名自带构建号 → LUMI-unsigned-1.0.0-<运行号>.ipa，不会再混
+      #   · `ideviceinstaller -l` 能直接读出手机上装的是哪一次
+      #     （配合 tools/lumi_device_log.py apps，见 docs/06）
+      # -----------------------------------------------------------------------
+      - name: 写入构建号（CI 运行号）
+        run: |
+          set -euo pipefail
+          PLIST="LUMI/Resources/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${GITHUB_RUN_NUMBER}" "$PLIST"
+          echo "CFBundleVersion → $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")"
+          echo "来源：run ${GITHUB_RUN_NUMBER} / ${GITHUB_SHA:0:7}"
+
+      # -----------------------------------------------------------------------
       # Archive（关闭签名）
       # -----------------------------------------------------------------------
       - name: 归档（未签名）
