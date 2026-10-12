@@ -147,6 +147,7 @@ final class SettingsStore: ObservableObject {
         self.analysisFPS = fps == 0 ? 8 : min(max(fps, 1), 15)
         self.liveExposureMeterEnabled = defaults.object(forKey: Keys.exposureMeter) as? Bool ?? true
         self.showsConfidenceBadges = defaults.object(forKey: Keys.showConfidence) as? Bool ?? true
+        self.showsFrameStats = defaults.object(forKey: Keys.showFrameStats) as? Bool ?? true
         self.prefersLandscapeMonitor = defaults.bool(forKey: Keys.landscapeDefault)
         self.keepsScreenAwake = defaults.object(forKey: Keys.keepScreenAwake) as? Bool ?? true
         self.hasAcknowledgedPrivacy = defaults.bool(forKey: Keys.privacyAcknowledged)
