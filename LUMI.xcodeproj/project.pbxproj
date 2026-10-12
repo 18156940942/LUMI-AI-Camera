@@ -64,6 +64,7 @@
 		2F802C869C6C161DF9445EC8 /* PoseAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */; };
 		71FA42E01693605C48D20578 /* PoseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D11509A6DA07F077D7A51F /* PoseDetailView.swift */; };
 		0CD14A53D91AC988881966DB /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B1E9597EC47A1914A78E7A /* PrivacyView.swift */; };
+		0AE3F6E1239C0C8DA7524128 /* RetouchHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8CECF367B9B48710BEFDA3 /* RetouchHubView.swift */; };
 		6DA94831A6A3CEB8FE16658C /* RetouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0BB377B1BC716D472C4C96 /* RetouchView.swift */; };
 		38CCADD0A1B1B150CD1A1388 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F8572E3EC3D000367D1A68 /* RootView.swift */; };
 		696894C5DB4038AC9B42333D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35D3B524F0C33EB8FD43651 /* SettingsView.swift */; };
@@ -159,6 +160,7 @@
 		C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAssistantView.swift; sourceTree = "<group>"; };
 		53D11509A6DA07F077D7A51F /* PoseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseDetailView.swift; sourceTree = "<group>"; };
 		67B1E9597EC47A1914A78E7A /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
+		5D8CECF367B9B48710BEFDA3 /* RetouchHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchHubView.swift; sourceTree = "<group>"; };
 		FD0BB377B1BC716D472C4C96 /* RetouchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchView.swift; sourceTree = "<group>"; };
 		17F8572E3EC3D000367D1A68 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		F35D3B524F0C33EB8FD43651 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -373,6 +375,7 @@
 				C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */,
 				53D11509A6DA07F077D7A51F /* PoseDetailView.swift */,
 				67B1E9597EC47A1914A78E7A /* PrivacyView.swift */,
+				5D8CECF367B9B48710BEFDA3 /* RetouchHubView.swift */,
 				FD0BB377B1BC716D472C4C96 /* RetouchView.swift */,
 				17F8572E3EC3D000367D1A68 /* RootView.swift */,
 				F35D3B524F0C33EB8FD43651 /* SettingsView.swift */,
@@ -563,6 +566,7 @@
 				2F802C869C6C161DF9445EC8 /* PoseAssistantView.swift in Sources */,
 				71FA42E01693605C48D20578 /* PoseDetailView.swift in Sources */,
 				0CD14A53D91AC988881966DB /* PrivacyView.swift in Sources */,
+				0AE3F6E1239C0C8DA7524128 /* RetouchHubView.swift in Sources */,
 				6DA94831A6A3CEB8FE16658C /* RetouchView.swift in Sources */,
 				38CCADD0A1B1B150CD1A1388 /* RootView.swift in Sources */,
 				696894C5DB4038AC9B42333D /* SettingsView.swift in Sources */,

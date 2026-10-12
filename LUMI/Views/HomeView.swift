@@ -17,6 +17,7 @@ struct HomeView: View {
     @EnvironmentObject private var photoLibrary: PhotoLibraryStore
 
     @State private var showsSettings = false
+    @State private var showsRetouch = false
 
     var body: some View {
         NavigationStack {
@@ -42,6 +43,9 @@ struct HomeView: View {
                             .foregroundStyle(LumiTheme.secondaryText)
                     }
                 }
+            }
+            .sheet(isPresented: $showsRetouch) {
+                RetouchHubView()
             }
             .sheet(isPresented: $showsSettings) {
                 NavigationStack { SettingsView() }
@@ -188,6 +192,7 @@ struct HomeView: View {
                 entryCard(tab: .pose, title: "AI 姿势助手", subtitle: "\(poseLibrary.poses.count) 条离线姿势库", symbol: "figure.walk.motion")
                 coachCard
                 entryCard(tab: .photos, title: "照片管理", subtitle: "\(photoLibrary.records.count) 张已导入副本", symbol: "photo.stack")
+                retouchCard
                 entryCard(tab: .tools, title: "摄影工具", subtitle: "网格 · 构图比例 · 拍摄备注", symbol: "squareshape.split.2x2")
                 settingsCard
             }
@@ -206,6 +211,41 @@ struct HomeView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(LumiTheme.primaryText)
                 Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(LumiTheme.tertiaryText)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
+            .padding(12)
+            .background(LumiTheme.surface)
+            .overlay(
+                RoundedRectangle(cornerRadius: LumiTheme.cornerRadius, style: .continuous)
+                    .stroke(LumiTheme.stroke, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: LumiTheme.cornerRadius, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 「AI 精修」入口。
+    ///
+    /// 单独做成一张卡、而不是切 Tab，是因为精修不属于现有任何一个 Tab 的职责，
+    /// 而原先把入口埋在「照片详情页的按钮」里，导致功能存在却没人找得到。
+    private var retouchCard: some View {
+        Button {
+            showsRetouch = true
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                Image(systemName: "wand.and.stars")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundStyle(LumiTheme.accent)
+                Text("AI 精修与调色")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(LumiTheme.primaryText)
+                Text(settings.retouch.isReady
+                     ? "已就绪 · 拍完直接过一遍"
+                     : (settings.retouch.isEnabled ? "已开启 · 地址待填" : "需在设置里开启"))
                     .font(.system(size: 11))
                     .foregroundStyle(LumiTheme.tertiaryText)
                     .lineLimit(2)
