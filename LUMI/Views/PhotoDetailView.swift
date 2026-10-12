@@ -15,6 +15,11 @@ struct PhotoDetailView: View {
     @State private var showsDeletionConfirmation = false
     @State private var showsScenePicker = false
     @State private var showsRetouch = false
+    // 放大查看与导出到相册
+    @State private var showsViewer = false
+    @State private var showsExportChoice = false
+    @State private var isExporting = false
+    @State private var exportMessage: String?
 
     private var record: PhotoRecord? { store.record(withID: recordID) }
 
@@ -73,6 +78,38 @@ struct PhotoDetailView: View {
         .sheet(isPresented: $showsRetouch) {
             RetouchView(recordID: recordID)
         }
+        .fullScreenCover(isPresented: $showsViewer) {
+            if let record {
+                ImageViewerView(items: viewerItems(for: record)) { item in
+                    Task { await exportFile(at: item.url, named: item.title, record: record) }
+                }
+            }
+        }
+        .confirmationDialog("导出哪一张到相册？", isPresented: $showsExportChoice, titleVisibility: .visible) {
+            Button("导出原图副本") {
+                if let record {
+                    Task {
+                        await exportFile(at: store.fileURL(for: record), named: "原图副本", record: record)
+                    }
+                }
+            }
+            Button("导出精修结果") {
+                if let record, let url = retouch.resultURL(for: record.id) {
+                    Task { await exportFile(at: url, named: "精修结果", record: record) }
+                }
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("导出会在相册里新增一份，不会覆盖或修改你的原始照片。")
+        }
+        .alert("导出到相册", isPresented: Binding(
+            get: { exportMessage != nil },
+            set: { if !$0 { exportMessage = nil } }
+        )) {
+            Button("好") { exportMessage = nil }
+        } message: {
+            Text(exportMessage ?? "")
+        }
         .confirmationDialog("删除 App 内副本？", isPresented: $showsDeletionConfirmation, titleVisibility: .visible) {
             Button("删除 App 内副本", role: .destructive) {
                 store.delete(recordID: recordID)
@@ -107,6 +144,17 @@ struct PhotoDetailView: View {
         .frame(maxWidth: .infinity)
         .frame(height: 260)
         .clipShape(RoundedRectangle(cornerRadius: LumiTheme.cornerRadius, style: .continuous))
+        .contentShape(Rectangle())
+        .onTapGesture { showsViewer = true }
+        .overlay(alignment: .topTrailing) {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(6)
+                .background(Color.black.opacity(0.45))
+                .clipShape(Circle())
+                .padding(10)
+        }
         .overlay(alignment: .bottomLeading) {
             HStack(spacing: 6) {
                 if store.analyzingRecordIDs.contains(record.id) {
@@ -319,6 +367,11 @@ struct PhotoDetailView: View {
                             tint: settings.retouch.isEnabled ? LumiTheme.accent : LumiTheme.secondaryText) {
                 showsRetouch = true
             }
+            SecondaryButton(title: isExporting ? "正在导出…" : "导出到相册",
+                            symbol: "square.and.arrow.down",
+                            tint: isExporting ? LumiTheme.secondaryText : LumiTheme.accent) {
+                beginExport(record)
+            }
             SecondaryButton(title: "重新分析", symbol: "arrow.triangle.2.circlepath") {
                 store.analyze(recordID: record.id)
             }
@@ -328,7 +381,55 @@ struct PhotoDetailView: View {
             SecondaryButton(title: "删除 App 内副本", symbol: "trash", tint: LumiTheme.danger) {
                 showsDeletionConfirmation = true
             }
-            LimitationBadge(text: "LUMI 不会删除或修改相册中的原始照片；此操作只影响 App 内的副本与分析记录。")
+            LimitationBadge(text: "LUMI 不会删除或修改相册中的原始照片。删除只影响 App 内的副本；导出是往相册新增一份，同样不动原图。")
+        }
+    }
+
+    // MARK: - 放大查看
+
+    /// 可查看的图。有精修结果就把原图与结果一起给出来，方便来回对比。
+    private func viewerItems(for record: PhotoRecord) -> [ImageViewerView.Item] {
+        var list = [ImageViewerView.Item(id: "original-\(record.id.uuidString)",
+                                        title: "原图",
+                                        url: store.fileURL(for: record),
+                                        creationDate: record.captureDate)]
+        if let resultURL = retouch.resultURL(for: record.id) {
+            list.append(ImageViewerView.Item(id: "retouch-\(record.id.uuidString)",
+                                            title: "精修后",
+                                            url: resultURL,
+                                            creationDate: record.captureDate))
+        }
+        return list
+    }
+
+    // MARK: - 导出
+
+    /// 点「导出到相册」：只有原图就直接导；有精修结果就先问一句导哪张。
+    private func beginExport(_ record: PhotoRecord) {
+        guard !isExporting else { return }
+        if retouch.hasUsableResult(for: record.id) {
+            showsExportChoice = true
+        } else {
+            Task {
+                await exportFile(at: store.fileURL(for: record), named: "原图副本", record: record)
+            }
+        }
+    }
+
+    @MainActor
+    private func exportFile(at url: URL, named: String, record: PhotoRecord) async {
+        guard !isExporting else { return }
+        isExporting = true
+        defer { isExporting = false }
+
+        do {
+            // 用原图的拍摄时间，而不是「现在」—— 否则导出的照片会排到相册时间轴最前面
+            try await PhotoExporter.save(at: url, creationDate: record.captureDate)
+            exportMessage = "\(named)已导出到相册。相册里新增了一份，你的原始照片没有被修改。"
+            DiagnosticsLog.shared.info(.photo, "导出到相册成功：\(named)")
+        } catch {
+            exportMessage = "导出失败：\(error.localizedDescription)"
+            DiagnosticsLog.shared.error(.photo, "导出到相册失败：\(error.localizedDescription)")
         }
     }
 }

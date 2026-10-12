@@ -24,6 +24,10 @@ struct RetouchHubView: View {
     @State private var selectedRecordID: UUID?
     @State private var openedRecordID: UUID?
     @State private var hint: String?
+    // 放大查看与导出到相册
+    @State private var showsViewer = false
+    @State private var isExporting = false
+    @State private var exportMessage: String?
 
     private var configuration: RetouchConfiguration { settings.retouch }
 
@@ -81,6 +85,19 @@ struct RetouchHubView: View {
             if let id = openedRecordID {
                 RetouchView(recordID: id)
             }
+        }
+        .fullScreenCover(isPresented: $showsViewer) {
+            ImageViewerView(items: viewerItems) { item in
+                Task { await exportToAlbum(at: item.url, label: item.title) }
+            }
+        }
+        .alert("导出到相册", isPresented: Binding(
+            get: { exportMessage != nil },
+            set: { if !$0 { exportMessage = nil } }
+        )) {
+            Button("好") { exportMessage = nil }
+        } message: {
+            Text(exportMessage ?? "")
         }
     }
 
@@ -268,6 +285,13 @@ struct RetouchHubView: View {
                           isEnabled: blockingReason == nil) {
                 openRetouch(with: configuration.defaultPresetID ?? "enhance.auto")
             }
+            if let id = selectedRecordID, retouch.hasUsableResult(for: id) {
+                SecondaryButton(title: "放大查看 / 导出这张的精修结果",
+                                symbol: "arrow.up.left.and.arrow.down.right",
+                                tint: LumiTheme.accent) {
+                    showsViewer = true
+                }
+            }
         }
     }
 
@@ -366,9 +390,47 @@ struct RetouchHubView: View {
 
     private var boundaryCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            LimitationBadge(text: "精修结果只存在 App 沙盒里，不会写回相册；你的原始照片永远不被修改。")
+            LimitationBadge(text: "精修结果默认只存在 App 沙盒里，不会自动写回相册。想存到相册时，在精修页点「导出精修结果到相册」—— 那是新增一张，不会覆盖或修改任何已有照片。")
             LimitationBadge(text: "画质增强、调色与人像美化都在你自己电脑上算，照片不会离开本机；只有「生成式改动」会把照片发给你配置的云端服务商。")
             LimitationBadge(text: "本地算法是确定性运算，同样的输入永远得到同样的输出；云端生成式结果不确定，可能改动超出你的预期。")
+        }
+    }
+
+    // MARK: - 放大查看
+
+    /// 当前选中照片的可查看项：原图 + 精修结果。
+    private var viewerItems: [ImageViewerView.Item] {
+        guard let id = selectedRecordID,
+              let record = photoLibrary.record(withID: id) else { return [] }
+        var list = [ImageViewerView.Item(id: "original-\(record.id.uuidString)",
+                                        title: "原图",
+                                        url: photoLibrary.fileURL(for: record),
+                                        creationDate: record.captureDate)]
+        if let resultURL = retouch.resultURL(for: record.id) {
+            list.append(ImageViewerView.Item(id: "retouch-\(record.id.uuidString)",
+                                            title: "精修后",
+                                            url: resultURL,
+                                            creationDate: record.captureDate))
+        }
+        return list
+    }
+
+    // MARK: - 导出
+
+    @MainActor
+    private func exportToAlbum(at url: URL, label: String) async {
+        guard !isExporting else { return }
+        isExporting = true
+        defer { isExporting = false }
+
+        let captureDate = selectedRecordID.flatMap { photoLibrary.record(withID: $0)?.captureDate }
+        do {
+            try await PhotoExporter.save(at: url, creationDate: captureDate)
+            exportMessage = "\(label)已导出到相册。相册里新增了一份，原图和 App 内的副本都没有被改动。"
+            DiagnosticsLog.shared.info(.photo, "导出到相册成功：\(label)")
+        } catch {
+            exportMessage = "导出失败：\(error.localizedDescription)"
+            DiagnosticsLog.shared.error(.photo, "导出到相册失败：\(error.localizedDescription)")
         }
     }
 }

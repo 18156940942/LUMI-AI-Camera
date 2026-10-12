@@ -21,6 +21,10 @@ struct RetouchView: View {
     @State private var prompt: String = ""
     @State private var showsResult = true
     @State private var showsDeleteResult = false
+    // 放大查看与导出到相册
+    @State private var showsViewer = false
+    @State private var isExporting = false
+    @State private var exportMessage: String?
 
     private var record: PhotoRecord? { photoLibrary.record(withID: recordID) }
     private var configuration: RetouchConfiguration { settings.retouch }
@@ -107,6 +111,19 @@ struct RetouchView: View {
                 Button("取消", role: .cancel) {}
             } message: {
                 Text("只删除这张照片的精修结果，原图与照片本身都不受影响。")
+            }
+            .fullScreenCover(isPresented: $showsViewer) {
+                ImageViewerView(items: viewerItems) { item in
+                    Task { await exportToAlbum(at: item.url, label: item.title) }
+                }
+            }
+            .alert("导出到相册", isPresented: Binding(
+                get: { exportMessage != nil },
+                set: { if !$0 { exportMessage = nil } }
+            )) {
+                Button("好") { exportMessage = nil }
+            } message: {
+                Text(exportMessage ?? "")
             }
         }
     }
@@ -329,11 +346,31 @@ struct RetouchView: View {
                     comparisonPane(title: "原图", url: record.map { photoLibrary.fileURL(for: $0) })
                     comparisonPane(title: "精修后", url: retouch.resultURL(for: recordID))
                 }
+                .contentShape(Rectangle())
+                .onTapGesture { showsViewer = true }
+                Text("点图片可放大对比：双指缩放、双击放大、放大后拖动。")
+                    .font(.system(size: 10))
+                    .foregroundStyle(LumiTheme.tertiaryText)
                 if let info = retouch.record(for: recordID) {
                     InfoRow(label: "预设", value: catalog?.preset(withID: info.presetID)?.title ?? info.presetID)
                     InfoRow(label: "执行方", value: info.provider)
                     InfoRow(label: "完成时间", value: info.finishedAt.formatted(date: .abbreviated, time: .shortened))
                     InfoRow(label: "文件大小", value: ByteCountFormatter.string(fromByteCount: Int64(info.byteSize), countStyle: .file))
+                }
+                SecondaryButton(title: "放大查看 / 对比",
+                                symbol: "arrow.up.left.and.arrow.down.right") {
+                    showsViewer = true
+                }
+                SecondaryButton(title: isExporting ? "正在导出…" : "导出精修结果到相册",
+                                symbol: "square.and.arrow.down",
+                                tint: isExporting ? LumiTheme.secondaryText : LumiTheme.accent) {
+                    Task {
+                        guard let url = retouch.resultURL(for: recordID) else {
+                            exportMessage = "现在没有可导出的精修结果。"
+                            return
+                        }
+                        await exportToAlbum(at: url, label: "精修结果")
+                    }
                 }
                 SecondaryButton(title: "删除精修副本", symbol: "trash", tint: LumiTheme.danger) {
                     showsDeleteResult = true
@@ -365,9 +402,47 @@ struct RetouchView: View {
 
     private var boundaryCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            LimitationBadge(text: "精修结果只存在 App 沙盒里，不会写回相册；你的原始照片永远不被修改。")
+            LimitationBadge(text: "精修结果默认只存在 App 沙盒里，不会自动写回相册。你可以手动「导出精修结果到相册」—— 那是往相册新增一张，不会覆盖或修改任何已有照片。")
             LimitationBadge(text: "画质增强、调色与人像美化都在你自己电脑上算，照片不会离开本机；只有「生成式改动」会把照片发给你配置的云端服务商。")
             LimitationBadge(text: "本地算法是确定性运算，同样的输入永远得到同样的输出；云端生成式结果不确定，可能改动超出你的预期。")
+        }
+    }
+
+    // MARK: - 放大查看
+
+    /// 可查看的图：原图 + 精修结果，在查看器里可以直接来回切。
+    private var viewerItems: [ImageViewerView.Item] {
+        guard let record else { return [] }
+        var list = [ImageViewerView.Item(id: "original-\(record.id.uuidString)",
+                                        title: "原图",
+                                        url: photoLibrary.fileURL(for: record),
+                                        creationDate: record.captureDate)]
+        if let resultURL = retouch.resultURL(for: recordID) {
+            list.append(ImageViewerView.Item(id: "retouch-\(record.id.uuidString)",
+                                            title: "精修后",
+                                            url: resultURL,
+                                            creationDate: record.captureDate))
+        }
+        return list
+    }
+
+    // MARK: - 导出
+
+    /// 把某个本地文件导出到系统相册。查看器底部与结果区共用这一条路径。
+    @MainActor
+    private func exportToAlbum(at url: URL, label: String) async {
+        guard !isExporting else { return }
+        isExporting = true
+        defer { isExporting = false }
+
+        do {
+            // 用原图拍摄时间，避免导出后在相册时间轴里排到最前面
+            try await PhotoExporter.save(at: url, creationDate: record?.captureDate)
+            exportMessage = "\(label)已导出到相册。相册里新增了一份，原图和 App 内的副本都没有被改动。"
+            DiagnosticsLog.shared.info(.photo, "导出到相册成功：\(label)")
+        } catch {
+            exportMessage = "导出失败：\(error.localizedDescription)"
+            DiagnosticsLog.shared.error(.photo, "导出到相册失败：\(error.localizedDescription)")
         }
     }
 }

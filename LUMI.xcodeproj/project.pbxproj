@@ -40,6 +40,7 @@
 		3FF8BA4102A52A5D58A708F8 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481198DE4E190260355D0E9D /* FavoritesStore.swift */; };
 		2A7D8A61782A2D2F313291AC /* FormatSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC05BA23DCBF9AAEBC3C1EA /* FormatSupport.swift */; };
 		2C78A245FF37DD6FBBD3295F /* OrientationSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D11DF6858D2D523429CD7A /* OrientationSupport.swift */; };
+		6F7F689890C3206C01A3979E /* PhotoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E88928FA4D9AA6CF5DAC1F /* PhotoExporter.swift */; };
 		52CD80A94529E6BDB90F6319 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */; };
 		1B5541BA9C2773EB2DC8965E /* RelayProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BCD65BF17EC30DE3F8752D /* RelayProbe.swift */; };
 		6BA483D014E0A7584F69F5AC /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F52E5AE6C4828C2096DEFB2F /* SettingsStore.swift */; };
@@ -55,6 +56,7 @@
 		FD1EB6FD47FF05C73E9F38A9 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCD4F4E104F7A9A960A44C9 /* Components.swift */; };
 		F2BED6FF268DFE5C182D795D /* DiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EBE58DD968643C972805A5 /* DiagnosticsView.swift */; };
 		A2A3D27D842713724B5F096D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAD52EC2D908FEE3F30DDC8 /* HomeView.swift */; };
+		3A86D73158CBE4B27792756C /* ImageViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94D7F6502BC43428BD521E51 /* ImageViewerView.swift */; };
 		8E3767A977C7D31DEBDEC443 /* LiveMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 677C4D36EC1FC90A44C56BD7 /* LiveMonitorView.swift */; };
 		B7237970B9560A8D1D6139D1 /* LivePoseCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0CA973123FDA5A60B38C99 /* LivePoseCoachView.swift */; };
 		F3AE0C668258D3853F291F81 /* MonitorOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A18090851CBCF67FB7B95541 /* MonitorOverlayView.swift */; };
@@ -75,6 +77,7 @@
 		75D592A00BA8BD0483C6F0AC /* ExifReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91DA26B93EFDD6D12AADC030 /* ExifReaderTests.swift */; };
 		42F3F0D4A7122292850EDC0E /* ImageQualityCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE8F8CCBA3EDB5F42DF7B72 /* ImageQualityCalculatorTests.swift */; };
 		C08FEF61AD86F62E879935E6 /* PhotoAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9430FC1D31D1A2E20F3132C /* PhotoAnalyzerTests.swift */; };
+		83DB6BDA1F1BB9A82430F3AF /* PhotoExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA9BBA2EEA5128F3E7AEB0 /* PhotoExporterTests.swift */; };
 		F19FFE3C1941805BE3FBA06A /* PoseAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F093104D1361FACCD5DF34F5 /* PoseAnalyzerTests.swift */; };
 		8E5D2D89834F73AB2B6AAE81 /* PoseCoachEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A202D139CA8421C95BDDCF0A /* PoseCoachEngineTests.swift */; };
 		2F2D7579DBA1F1DD1C846717 /* PoseGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33D5EE5E6A5C0FF00F22E4D /* PoseGeometryTests.swift */; };
@@ -136,6 +139,7 @@
 		481198DE4E190260355D0E9D /* FavoritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesStore.swift; sourceTree = "<group>"; };
 		8BC05BA23DCBF9AAEBC3C1EA /* FormatSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSupport.swift; sourceTree = "<group>"; };
 		44D11DF6858D2D523429CD7A /* OrientationSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrientationSupport.swift; sourceTree = "<group>"; };
+		11E88928FA4D9AA6CF5DAC1F /* PhotoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoExporter.swift; sourceTree = "<group>"; };
 		2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStore.swift; sourceTree = "<group>"; };
 		92BCD65BF17EC30DE3F8752D /* RelayProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayProbe.swift; sourceTree = "<group>"; };
 		F52E5AE6C4828C2096DEFB2F /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
@@ -151,6 +155,7 @@
 		2CCD4F4E104F7A9A960A44C9 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		22EBE58DD968643C972805A5 /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		2BAD52EC2D908FEE3F30DDC8 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		94D7F6502BC43428BD521E51 /* ImageViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewerView.swift; sourceTree = "<group>"; };
 		677C4D36EC1FC90A44C56BD7 /* LiveMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveMonitorView.swift; sourceTree = "<group>"; };
 		0E0CA973123FDA5A60B38C99 /* LivePoseCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePoseCoachView.swift; sourceTree = "<group>"; };
 		A18090851CBCF67FB7B95541 /* MonitorOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorOverlayView.swift; sourceTree = "<group>"; };
@@ -171,6 +176,7 @@
 		91DA26B93EFDD6D12AADC030 /* ExifReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExifReaderTests.swift; sourceTree = "<group>"; };
 		CDE8F8CCBA3EDB5F42DF7B72 /* ImageQualityCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageQualityCalculatorTests.swift; sourceTree = "<group>"; };
 		F9430FC1D31D1A2E20F3132C /* PhotoAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAnalyzerTests.swift; sourceTree = "<group>"; };
+		D9CA9BBA2EEA5128F3E7AEB0 /* PhotoExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoExporterTests.swift; sourceTree = "<group>"; };
 		F093104D1361FACCD5DF34F5 /* PoseAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAnalyzerTests.swift; sourceTree = "<group>"; };
 		A202D139CA8421C95BDDCF0A /* PoseCoachEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseCoachEngineTests.swift; sourceTree = "<group>"; };
 		C33D5EE5E6A5C0FF00F22E4D /* PoseGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseGeometryTests.swift; sourceTree = "<group>"; };
@@ -330,6 +336,7 @@
 				481198DE4E190260355D0E9D /* FavoritesStore.swift */,
 				8BC05BA23DCBF9AAEBC3C1EA /* FormatSupport.swift */,
 				44D11DF6858D2D523429CD7A /* OrientationSupport.swift */,
+				11E88928FA4D9AA6CF5DAC1F /* PhotoExporter.swift */,
 				2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */,
 				92BCD65BF17EC30DE3F8752D /* RelayProbe.swift */,
 				F52E5AE6C4828C2096DEFB2F /* SettingsStore.swift */,
@@ -366,6 +373,7 @@
 				2CCD4F4E104F7A9A960A44C9 /* Components.swift */,
 				22EBE58DD968643C972805A5 /* DiagnosticsView.swift */,
 				2BAD52EC2D908FEE3F30DDC8 /* HomeView.swift */,
+				94D7F6502BC43428BD521E51 /* ImageViewerView.swift */,
 				677C4D36EC1FC90A44C56BD7 /* LiveMonitorView.swift */,
 				0E0CA973123FDA5A60B38C99 /* LivePoseCoachView.swift */,
 				A18090851CBCF67FB7B95541 /* MonitorOverlayView.swift */,
@@ -393,6 +401,7 @@
 				91DA26B93EFDD6D12AADC030 /* ExifReaderTests.swift */,
 				CDE8F8CCBA3EDB5F42DF7B72 /* ImageQualityCalculatorTests.swift */,
 				F9430FC1D31D1A2E20F3132C /* PhotoAnalyzerTests.swift */,
+				D9CA9BBA2EEA5128F3E7AEB0 /* PhotoExporterTests.swift */,
 				F093104D1361FACCD5DF34F5 /* PoseAnalyzerTests.swift */,
 				A202D139CA8421C95BDDCF0A /* PoseCoachEngineTests.swift */,
 				C33D5EE5E6A5C0FF00F22E4D /* PoseGeometryTests.swift */,
@@ -542,6 +551,7 @@
 				3FF8BA4102A52A5D58A708F8 /* FavoritesStore.swift in Sources */,
 				2A7D8A61782A2D2F313291AC /* FormatSupport.swift in Sources */,
 				2C78A245FF37DD6FBBD3295F /* OrientationSupport.swift in Sources */,
+				6F7F689890C3206C01A3979E /* PhotoExporter.swift in Sources */,
 				52CD80A94529E6BDB90F6319 /* PresetStore.swift in Sources */,
 				1B5541BA9C2773EB2DC8965E /* RelayProbe.swift in Sources */,
 				6BA483D014E0A7584F69F5AC /* SettingsStore.swift in Sources */,
@@ -557,6 +567,7 @@
 				FD1EB6FD47FF05C73E9F38A9 /* Components.swift in Sources */,
 				F2BED6FF268DFE5C182D795D /* DiagnosticsView.swift in Sources */,
 				A2A3D27D842713724B5F096D /* HomeView.swift in Sources */,
+				3A86D73158CBE4B27792756C /* ImageViewerView.swift in Sources */,
 				8E3767A977C7D31DEBDEC443 /* LiveMonitorView.swift in Sources */,
 				B7237970B9560A8D1D6139D1 /* LivePoseCoachView.swift in Sources */,
 				F3AE0C668258D3853F291F81 /* MonitorOverlayView.swift in Sources */,
@@ -584,6 +595,7 @@
 				75D592A00BA8BD0483C6F0AC /* ExifReaderTests.swift in Sources */,
 				42F3F0D4A7122292850EDC0E /* ImageQualityCalculatorTests.swift in Sources */,
 				C08FEF61AD86F62E879935E6 /* PhotoAnalyzerTests.swift in Sources */,
+				83DB6BDA1F1BB9A82430F3AF /* PhotoExporterTests.swift in Sources */,
 				F19FFE3C1941805BE3FBA06A /* PoseAnalyzerTests.swift in Sources */,
 				8E5D2D89834F73AB2B6AAE81 /* PoseCoachEngineTests.swift in Sources */,
 				2F2D7579DBA1F1DD1C846717 /* PoseGeometryTests.swift in Sources */,

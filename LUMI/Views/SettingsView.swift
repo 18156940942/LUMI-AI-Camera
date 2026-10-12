@@ -416,9 +416,14 @@ struct SettingsView: View {
 
                 Text("""
                 怎么用：
-                1. 在电脑上运行 `python tools/lumi_retouch_server.py`；
+                1. 在电脑上双击 `tools\\start_retouch_relay.cmd`；
                 2. 把脚本打印的地址填到上面的输入框；
                 3. 打开照片详情页，点「精修这张照片」。
+
+                别直接敲 `python tools/lumi_retouch_server.py`：系统 Python 通常
+                没装 numpy / opencv，脚本会在 import 时直接退出、端口不监听，
+                而 App 这边只会看到「连不上」。上面那个脚本会自己挑一个装了
+                依赖的解释器，并先替你验证一遍。
 
                 画质增强、风格化调色、人像美化都在你电脑上算，照片不出本机。
                 只有「生成式改动」会继续发给你自己配置的云端服务商。
@@ -445,6 +450,8 @@ struct SettingsView: View {
 
                 InfoRow(label: "摄像头", value: "仅在内置摄像头模式使用，需你手动开启")
                 InfoRow(label: "照片", value: "仅读取你主动挑选的照片")
+                InfoRow(label: "相册写入", value: "只在你点「导出到相册」时新增一张，从不修改已有照片")
+                InfoRow(label: "当前写入权限", value: PhotoExporter.describe(PhotoExporter.authorizationStatus))
                 InfoRow(label: "人体姿态数据", value: "仅在本机内存中处理，不落盘、不上传")
                 InfoRow(label: "局域网", value: "用于监看中继与照片精修中继，都只连你自建的地址")
                 InfoRow(label: "照片精修", value: settings.retouch.statusText
