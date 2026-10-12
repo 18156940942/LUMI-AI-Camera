@@ -37,10 +37,13 @@
   · 请求体外层结构 `{template_id, payload:{resource_list, extra}, callback_url?}`
   · 响应外层结构 `{code, message, request_id, data:{task_id}}`
   · 两个 template_id、`beautyToolConfigKey` 为必填且取值 `beautyCustom_v1`
+  · **`extra` 的分组嵌套**：参数分组（`beauty` / `style_makeup` / `reshape` /
+    `bodyshaping` / `image_quality` / `filter`）必须嵌在 `extra.default` 之下 ——
+    官方文档给了完整 JSON 样例，且明确「default 为默认参数组必传」
+    （见「美颜 API V2.0 传统修图接口文档 (APIKey版)」）
   · 各美化小项的**参数名**（见 PRESETS 里的注释）
 
-**仍需校准**（文档没有给完整 JSON 样例，我不猜死，做了容错 + 探针）：
-  · `extra` 内部的分组嵌套层级（`beauty` / `style_makeup` / `reshape` / `quality` …）
+**仍需校准**（做了容错 + 探针，真实调用一次即可确认）：
   · 查询接口的入参字段名（我按 `task_id` 发，同时容错 `TaskId` / `taskId`）
   · 查询响应里 `result_url` 的字段路径（做了多路径回退）
 
@@ -68,8 +71,13 @@ API Key 从哪来
 ==============
 
 火山引擎控制台 → 创作 Agent(Kickart) → API Key → +New。
-**注意**：美颜 API 需要先购买「创点」并开通对应服务权限，否则会返回权限错误。
-这一步是商务流程，不是自助开通 —— 如果返回权限类错误，请找你的商务代表。
+控制台地址：https://console.volcengine.com/kickart/fusion/setting/api-key
+（必须**主账号**登录；IAM 子账号方式见官方「创建火山引擎API Key」文档，
+权限限制需勾选「智能创作云」。）
+
+**注意**：美颜 API 按「创点」计费，需要先购买支持后付费 API 的创点套餐
+并开通服务权限，否则会返回权限错误。创点购买是商务流程，不是自助开通 ——
+创点购买链接需联系火山技术支持获取；遇到权限错误请找商务代表。
 """
 
 from __future__ import annotations
@@ -203,13 +211,15 @@ PRESETS: dict[str, VolcPreset] = {
         title="云端美体",
         detail="瘦身 + 瘦腰 + 长腿。**会大幅改变画面内容**，半身/全身构图才适用。",
         groups={
-            "body": {  # 分组名待校准：文档列为「美体」分组
-                "thinbody": 30,
-                "thinwaist": 25,
-                "longleg": 20,
+            # 分组名与参数名均来自官方「美体 (bodyshaping)」分组列表：
+            # 瘦身 slimbody / 长腿 leglength / 瘦腰 slimwaist，范围 [0,100]
+            "bodyshaping": {
+                "slimbody": 30,
+                "slimwaist": 25,
+                "leglength": 20,
             },
         },
-        notes=("瘦身", "瘦腰", "长腿"),
+        notes=("瘦身(slimbody)", "瘦腰(slimwaist)", "长腿(leglength)"),
     ),
 }
 
@@ -220,11 +230,19 @@ def build_extra(preset: VolcPreset, intensity: int) -> dict[str, Any]:
     强度是 LUMI 自己的概念（0–100）。这里按 ``scale = intensity / 100`` 等比缩放
     每一项的基准值，并夹到该参数允许的区间内。
 
-    **注意**：分组嵌套层级（``beauty`` / ``reshape`` …）来自官方分组参数列表，
-    但文档没有给完整 JSON 样例。第一次使用请用 ``--probe`` 看真实响应再定稿。
+    **分组嵌套**（已按官方 JSON 样例定稿）：参数分组必须嵌在 ``extra.default``
+    之下，文档明确「default 为默认参数组必传」：
+
+        extra = {
+          "beautyToolConfigKey": "beautyCustom_v1",
+          "default": {
+            "beauty":  {"unify_skin_color": 55, ...},
+            "reshape": {"eye_brighten": 20, ...}
+          }
+        }
     """
     scale = max(0.0, min(1.0, intensity / 100.0))
-    extra: dict[str, Any] = {"beautyToolConfigKey": BEAUTY_TOOL_CONFIG_KEY_CUSTOM}
+    default: dict[str, dict[str, int]] = {}
 
     for group, params in preset.groups.items():
         if not params:
@@ -234,9 +252,12 @@ def build_extra(preset: VolcPreset, intensity: int) -> dict[str, Any]:
             value = base if not preset.scalable else base * scale
             # 双向参数（-50..50）按同样的比例缩放，所以直接取整即可
             bucket[key] = int(round(value))
-        extra[group] = bucket
+        default[group] = bucket
 
-    return extra
+    return {
+        "beautyToolConfigKey": BEAUTY_TOOL_CONFIG_KEY_CUSTOM,
+        "default": default,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -443,26 +464,33 @@ def selftest() -> int:
     e100 = build_extra(p, 100)
     check("含 beautyToolConfigKey 且值正确",
           e100.get("beautyToolConfigKey") == BEAUTY_TOOL_CONFIG_KEY_CUSTOM, str(e100.get("beautyToolConfigKey")))
+    check("参数分组嵌在 extra.default 之下（官方要求，必传）",
+          isinstance(e100.get("default"), dict), str(list(e100)))
+    d100 = e100["default"]
     check("强度 100 时保持基准值",
-          e100.get("beauty", {}).get("unify_skin_color") == 55, str(e100))
-    check("分组存在", "beauty" in e100 and "reshape" in e100, str(list(e100)))
+          d100.get("beauty", {}).get("unify_skin_color") == 55, str(e100))
+    check("分组存在", "beauty" in d100 and "reshape" in d100, str(list(d100)))
     check("所有值都是整数",
-          all(isinstance(v, int) for g in e100.values() if isinstance(g, dict) for v in g.values()))
+          all(isinstance(v, int) for g in d100.values() for v in g.values()))
+    check("分组之外没有散落的参数（嵌套层级不能搞错）",
+          all(not (isinstance(v, dict)) for k, v in e100.items() if k != "default"), str(list(e100)))
 
     print("\n=== 2. 强度缩放 ===")
     e0 = build_extra(p, 0)
     e50 = build_extra(p, 50)
-    check("强度 0 → 全部归零", all(v == 0 for g in e0.values() if isinstance(g, dict) for v in g.values()), str(e0))
+    check("强度 0 → 全部归零", all(v == 0 for g in e0["default"].values() for v in g.values()), str(e0))
     check("强度 50 → 约为基准一半",
-          e50["beauty"]["unify_skin_color"] == 28, str(e50["beauty"]["unify_skin_color"]))
+          e50["default"]["beauty"]["unify_skin_color"] == 28, str(e50["default"]["beauty"]["unify_skin_color"]))
     check("强度超界被夹住（150 → 等同 100）", build_extra(p, 150) == e100)
     check("强度负值被夹住（-20 → 等同 0）", build_extra(p, -20) == e0)
 
     print("\n=== 3. 每条预设都能构造出合法 extra ===")
     for pid, preset in PRESETS.items():
         extra = build_extra(preset, 60)
-        ok = extra.get("beautyToolConfigKey") == BEAUTY_TOOL_CONFIG_KEY_CUSTOM and len(extra) >= 2
-        check(f"{pid} 有分组", ok, str(list(extra)))
+        ok = (extra.get("beautyToolConfigKey") == BEAUTY_TOOL_CONFIG_KEY_CUSTOM
+              and isinstance(extra.get("default"), dict)
+              and extra["default"])
+        check(f"{pid} 有分组（嵌在 default 下）", ok, str(extra))
 
     print("\n=== 4. 结果 URL 解析（多路径回退）===")
     cases = [
