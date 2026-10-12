@@ -5,12 +5,16 @@ struct PhotoDetailView: View {
 
     @EnvironmentObject private var store: PhotoLibraryStore
     @EnvironmentObject private var library: PoseLibrary
+    // 精修结果与配置：详情页要显示「已精修」标记并给出入口
+    @EnvironmentObject private var retouch: RetouchStore
+    @EnvironmentObject private var settings: SettingsStore
 
     let recordID: UUID
 
     @State private var image: UIImage?
     @State private var showsDeletionConfirmation = false
     @State private var showsScenePicker = false
+    @State private var showsRetouch = false
 
     private var record: PhotoRecord? { store.record(withID: recordID) }
 
@@ -65,6 +69,9 @@ struct PhotoDetailView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showsRetouch) {
+            RetouchView(recordID: recordID)
         }
         .confirmationDialog("删除 App 内副本？", isPresented: $showsDeletionConfirmation, titleVisibility: .visible) {
             Button("删除 App 内副本", role: .destructive) {
@@ -307,6 +314,11 @@ struct PhotoDetailView: View {
 
     private func actions(_ record: PhotoRecord) -> some View {
         VStack(spacing: 10) {
+            SecondaryButton(title: retouch.hasUsableResult(for: record.id) ? "查看 / 重新精修" : "精修这张照片",
+                            symbol: "wand.and.stars",
+                            tint: settings.retouch.isEnabled ? LumiTheme.accent : LumiTheme.secondaryText) {
+                showsRetouch = true
+            }
             SecondaryButton(title: "重新分析", symbol: "arrow.triangle.2.circlepath") {
                 store.analyze(recordID: record.id)
             }

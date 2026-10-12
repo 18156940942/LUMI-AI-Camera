@@ -24,6 +24,11 @@ LUMI —— 提交前预检（Windows 可用，不需要 Mac）
   5. 协议一致性
      `Hashable` 能否合成、`init` 是否漏赋值。
 
+  7. 精修预设
+     预设目录结构、JSON ↔ Swift 枚举一致性，以及**把每条本地精修预设真跑一遍**。
+     踩过的坑：暗通道去雾里把内置 `max()` 用在数组上、以及 (H,W) 与 (3,) 广播失败 ——
+     两类错误都只在真正执行时才暴露，手机上看到的就是一句「中继内部错误」。
+
   6. SwiftUI 观察链完整性
      View 读了某个 Store 却没有通过 `@EnvironmentObject` 订阅它。
      `AppState` 持有的子 Store 是普通 `let`，不会转发 `objectWillChange`，
@@ -147,7 +152,7 @@ ROTATION_ENUMS = {
 
 
 def validate_pose_library() -> None:
-    head("1/6  姿势库 JSON ↔ Swift 枚举 交叉校验")
+    head("1/7  姿势库 JSON ↔ Swift 枚举 交叉校验")
 
     json_path = ROOT / "LUMI" / "Resources" / "pose_library.json"
     types_path = ROOT / "LUMI" / "Models" / "PoseTypes.swift"
@@ -334,11 +339,12 @@ def main() -> int:
     print(f"工程根目录：{ROOT}")
 
     validate_pose_library()
-    run_script("2/6  重新生成 Xcode 工程文件", "generate_xcodeproj.py")
-    run_script("3/6  校验 Xcode 工程结构（含 OpenStep 文法解析）", "validate_project.py")
-    run_script("4/6  Swift 源码交叉引用检查", "check_symbols.py", "--all")
-    run_script("5/6  协议一致性检查（Hashable 合成 / init 完整性）", "check_conformance.py")
-    run_script("6/6  SwiftUI 观察链完整性检查", "check_observation.py")
+    run_script("2/7  重新生成 Xcode 工程文件", "generate_xcodeproj.py")
+    run_script("3/7  校验 Xcode 工程结构（含 OpenStep 文法解析）", "validate_project.py")
+    run_script("4/7  Swift 源码交叉引用检查", "check_symbols.py", "--all")
+    run_script("5/7  协议一致性检查（Hashable 合成 / init 完整性）", "check_conformance.py")
+    run_script("6/7  SwiftUI 观察链完整性检查", "check_observation.py")
+    run_script("7/7  精修预设检查（含本地算法实跑冒烟测试）", "check_retouch_presets.py")
 
     head("预检结果")
     for item in PASSED:

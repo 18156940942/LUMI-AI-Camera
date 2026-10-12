@@ -43,7 +43,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 校验姿势库、工程结构、源码交叉引用
+      # 精修预设检查里有一层「实跑冒烟测试」：把每条本地精修预设真跑一遍。
+      # 它抓到过两个只在执行时才暴露的错误（内置 max() 用在数组上、以及
+      # (H,W) 与 (3,) 广播失败），所以这里装上依赖让它在 CI 里也能跑。
+      - name: 安装精修管线依赖
+        run: |
+          python3 -m pip install --quiet --upgrade pip
+          python3 -m pip install --quiet opencv-python-headless numpy
+
+      - name: 校验姿势库、工程结构、源码交叉引用、精修预设
         run: python3 scripts/preflight.py
 
   # ---------------------------------------------------------------------------

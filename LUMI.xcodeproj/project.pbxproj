@@ -30,6 +30,9 @@
 		93B8DA07A4FFE065C52C3AAA /* PoseGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E229B51C61C3495535558BA1 /* PoseGeometry.swift */; };
 		86A0E319C1107CBE84C96918 /* PoseSkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512CC71F42A6F3289167D9DC /* PoseSkeletonView.swift */; };
 		D3A64E9B3A873FD8516FCB3C /* VisionPoseEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504AE92B70C5D2C1BCE6B239 /* VisionPoseEstimator.swift */; };
+		0BE531B699E4CC444CAD4C21 /* RetouchClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3568D44EE2CFAD00BAF8B1 /* RetouchClient.swift */; };
+		E79E7B0C80E93082EA13BA6E /* RetouchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676EF92FB5D29E7CE68B7BFB /* RetouchModels.swift */; };
+		8C2C29C1AF48F78813732F25 /* RetouchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C958E85E72A8F3EDCB366740 /* RetouchStore.swift */; };
 		699B8A0DF77712FDAF1CB3ED /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41137CC4A9C43CDDBDC63545 /* AppLog.swift */; };
 		9C85FBC1E190F37B4693C91D /* DiagnosticsContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442732C43BD657C7AEB23146 /* DiagnosticsContext.swift */; };
 		34BDAB59E420246EE9389F28 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BCF1AD0E75936EE69354CB /* DiagnosticsLog.swift */; };
@@ -60,6 +63,7 @@
 		2F802C869C6C161DF9445EC8 /* PoseAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */; };
 		71FA42E01693605C48D20578 /* PoseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D11509A6DA07F077D7A51F /* PoseDetailView.swift */; };
 		0CD14A53D91AC988881966DB /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B1E9597EC47A1914A78E7A /* PrivacyView.swift */; };
+		6DA94831A6A3CEB8FE16658C /* RetouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0BB377B1BC716D472C4C96 /* RetouchView.swift */; };
 		38CCADD0A1B1B150CD1A1388 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F8572E3EC3D000367D1A68 /* RootView.swift */; };
 		696894C5DB4038AC9B42333D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35D3B524F0C33EB8FD43651 /* SettingsView.swift */; };
 		D790CA11BD23C2C0D8A27E2E /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2602019848AFE3FF64A998E7 /* ToolsView.swift */; };
@@ -76,10 +80,12 @@
 		1754F81C2D74717F56B4DFF6 /* PoseRecommenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BEB894B9FCE136860E1A97D /* PoseRecommenderTests.swift */; };
 		98701149A63557EAF9CD3073 /* PoseScriptWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29E97A3BF8B950B44DFACF6 /* PoseScriptWriterTests.swift */; };
 		1191546DB3F2329F6D36BA42 /* PoseTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B03818E0868FD5EB6EB087E /* PoseTypesTests.swift */; };
+		6892419154CF2A6E0D3A8154 /* RetouchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082A5F2F11E4B9E1473C0712 /* RetouchTests.swift */; };
 		55490719CAE11A8B3131755C /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E594E3778F8057D60810CC /* TestFixtures.swift */; };
 		6D706CB23BC7D461DD33F333 /* VideoInputModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DFE9883E74864AF3653CA8 /* VideoInputModelsTests.swift */; };
 		4881601484A6E72E7AF3E24C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2579A772CBC555CD40F4237B /* Assets.xcassets */; };
 		87245266BD1FF1AF867FC264 /* pose_library.json in Resources */ = {isa = PBXBuildFile; fileRef = C6C4A15C16BA9B2312E0955E /* pose_library.json */; };
+		6DF5792E83F4CFE62638C767 /* retouch_presets.json in Resources */ = {isa = PBXBuildFile; fileRef = BCCF5B3149792DAC2170FB0B /* retouch_presets.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +124,9 @@
 		E229B51C61C3495535558BA1 /* PoseGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseGeometry.swift; sourceTree = "<group>"; };
 		512CC71F42A6F3289167D9DC /* PoseSkeletonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseSkeletonView.swift; sourceTree = "<group>"; };
 		504AE92B70C5D2C1BCE6B239 /* VisionPoseEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionPoseEstimator.swift; sourceTree = "<group>"; };
+		1D3568D44EE2CFAD00BAF8B1 /* RetouchClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchClient.swift; sourceTree = "<group>"; };
+		676EF92FB5D29E7CE68B7BFB /* RetouchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchModels.swift; sourceTree = "<group>"; };
+		C958E85E72A8F3EDCB366740 /* RetouchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchStore.swift; sourceTree = "<group>"; };
 		41137CC4A9C43CDDBDC63545 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		442732C43BD657C7AEB23146 /* DiagnosticsContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsContext.swift; sourceTree = "<group>"; };
 		30BCF1AD0E75936EE69354CB /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
@@ -148,6 +157,7 @@
 		C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAssistantView.swift; sourceTree = "<group>"; };
 		53D11509A6DA07F077D7A51F /* PoseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseDetailView.swift; sourceTree = "<group>"; };
 		67B1E9597EC47A1914A78E7A /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
+		FD0BB377B1BC716D472C4C96 /* RetouchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchView.swift; sourceTree = "<group>"; };
 		17F8572E3EC3D000367D1A68 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		F35D3B524F0C33EB8FD43651 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		2602019848AFE3FF64A998E7 /* ToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsView.swift; sourceTree = "<group>"; };
@@ -164,11 +174,13 @@
 		6BEB894B9FCE136860E1A97D /* PoseRecommenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseRecommenderTests.swift; sourceTree = "<group>"; };
 		D29E97A3BF8B950B44DFACF6 /* PoseScriptWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseScriptWriterTests.swift; sourceTree = "<group>"; };
 		0B03818E0868FD5EB6EB087E /* PoseTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseTypesTests.swift; sourceTree = "<group>"; };
+		082A5F2F11E4B9E1473C0712 /* RetouchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetouchTests.swift; sourceTree = "<group>"; };
 		28E594E3778F8057D60810CC /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
 		49DFE9883E74864AF3653CA8 /* VideoInputModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputModelsTests.swift; sourceTree = "<group>"; };
 		2579A772CBC555CD40F4237B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		C6C4A15C16BA9B2312E0955E /* pose_library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pose_library.json; sourceTree = "<group>"; };
 		E5AF9ABE5AE2B92E14A6375D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C6C4A15C16BA9B2312E0955E /* pose_library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pose_library.json; sourceTree = "<group>"; };
+		BCCF5B3149792DAC2170FB0B /* retouch_presets.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = retouch_presets.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -216,6 +228,7 @@
 				0BE66388F6CBE42E06F9708C /* PhotoLibrary */,
 				6F8C7ABDE83EA5594B64763C /* PoseEstimation */,
 				F0BF77BFDED4935C65C41EBC /* Resources */,
+				C6D3C79933FA403A7CF79969 /* Retouch */,
 				5CFC45A75A16B86ECA9BC4D8 /* Services */,
 				8FC15046E0EE06C74E9D25D7 /* VideoInput */,
 				C9AC93D22C962F5BCAE51A89 /* ViewModels */,
@@ -288,8 +301,19 @@
 				2579A772CBC555CD40F4237B /* Assets.xcassets */,
 				E5AF9ABE5AE2B92E14A6375D /* Info.plist */,
 				C6C4A15C16BA9B2312E0955E /* pose_library.json */,
+				BCCF5B3149792DAC2170FB0B /* retouch_presets.json */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		C6D3C79933FA403A7CF79969 /* Retouch */ = {
+			isa = PBXGroup;
+			children = (
+				1D3568D44EE2CFAD00BAF8B1 /* RetouchClient.swift */,
+				676EF92FB5D29E7CE68B7BFB /* RetouchModels.swift */,
+				C958E85E72A8F3EDCB366740 /* RetouchStore.swift */,
+			);
+			path = Retouch;
 			sourceTree = "<group>";
 		};
 		5CFC45A75A16B86ECA9BC4D8 /* Services */ = {
@@ -346,6 +370,7 @@
 				C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */,
 				53D11509A6DA07F077D7A51F /* PoseDetailView.swift */,
 				67B1E9597EC47A1914A78E7A /* PrivacyView.swift */,
+				FD0BB377B1BC716D472C4C96 /* RetouchView.swift */,
 				17F8572E3EC3D000367D1A68 /* RootView.swift */,
 				F35D3B524F0C33EB8FD43651 /* SettingsView.swift */,
 				2602019848AFE3FF64A998E7 /* ToolsView.swift */,
@@ -369,6 +394,7 @@
 				6BEB894B9FCE136860E1A97D /* PoseRecommenderTests.swift */,
 				D29E97A3BF8B950B44DFACF6 /* PoseScriptWriterTests.swift */,
 				0B03818E0868FD5EB6EB087E /* PoseTypesTests.swift */,
+				082A5F2F11E4B9E1473C0712 /* RetouchTests.swift */,
 				28E594E3778F8057D60810CC /* TestFixtures.swift */,
 				49DFE9883E74864AF3653CA8 /* VideoInputModelsTests.swift */,
 			);
@@ -459,6 +485,7 @@
 			files = (
 				4881601484A6E72E7AF3E24C /* Assets.xcassets in Resources */,
 				87245266BD1FF1AF867FC264 /* pose_library.json in Resources */,
+				6DF5792E83F4CFE62638C767 /* retouch_presets.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -499,6 +526,9 @@
 				93B8DA07A4FFE065C52C3AAA /* PoseGeometry.swift in Sources */,
 				86A0E319C1107CBE84C96918 /* PoseSkeletonView.swift in Sources */,
 				D3A64E9B3A873FD8516FCB3C /* VisionPoseEstimator.swift in Sources */,
+				0BE531B699E4CC444CAD4C21 /* RetouchClient.swift in Sources */,
+				E79E7B0C80E93082EA13BA6E /* RetouchModels.swift in Sources */,
+				8C2C29C1AF48F78813732F25 /* RetouchStore.swift in Sources */,
 				699B8A0DF77712FDAF1CB3ED /* AppLog.swift in Sources */,
 				9C85FBC1E190F37B4693C91D /* DiagnosticsContext.swift in Sources */,
 				34BDAB59E420246EE9389F28 /* DiagnosticsLog.swift in Sources */,
@@ -529,6 +559,7 @@
 				2F802C869C6C161DF9445EC8 /* PoseAssistantView.swift in Sources */,
 				71FA42E01693605C48D20578 /* PoseDetailView.swift in Sources */,
 				0CD14A53D91AC988881966DB /* PrivacyView.swift in Sources */,
+				6DA94831A6A3CEB8FE16658C /* RetouchView.swift in Sources */,
 				38CCADD0A1B1B150CD1A1388 /* RootView.swift in Sources */,
 				696894C5DB4038AC9B42333D /* SettingsView.swift in Sources */,
 				D790CA11BD23C2C0D8A27E2E /* ToolsView.swift in Sources */,
@@ -552,6 +583,7 @@
 				1754F81C2D74717F56B4DFF6 /* PoseRecommenderTests.swift in Sources */,
 				98701149A63557EAF9CD3073 /* PoseScriptWriterTests.swift in Sources */,
 				1191546DB3F2329F6D36BA42 /* PoseTypesTests.swift in Sources */,
+				6892419154CF2A6E0D3A8154 /* RetouchTests.swift in Sources */,
 				55490719CAE11A8B3131755C /* TestFixtures.swift in Sources */,
 				6D706CB23BC7D461DD33F333 /* VideoInputModelsTests.swift in Sources */,
 			);

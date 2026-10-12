@@ -133,6 +133,10 @@ SYSTEM_TYPES = {
     "PHAuthorizationStatus",        # Photos：照片库权限的三种状态判定
     "ShareLink", "ThermalState",    # SwiftUI 分享控件 / ProcessInfo.ThermalState 的裸类型名
     "UInt64", "DispatchGroup",      # 标准库无符号整型 / Dispatch 并发组
+    # 精修模块引入的系统符号（RetouchClient.swift 用到）。同样逐个核对过：
+    "JSONSerialization",            # Foundation：解析中继返回的错误体
+    "CGImageSourceGetCount",        # ImageIO：判断字节流是否真能解码成图
+    "UTF8", "Unicode",              # 标准库：String(decoding:as: UTF8.self) 里的编码类型
 }
 
 DECL_RE = re.compile(

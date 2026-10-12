@@ -44,6 +44,7 @@ final class AppState: ObservableObject {
     let poseLibrary: PoseLibrary
     let videoInput: VideoInputManager
     let photoLibrary: PhotoLibraryStore
+    let retouch: RetouchStore
 
     /// 当前选中的页签（首页卡片可以跳转到指定页签）
     @Published var selectedTab: AppTab = .home
@@ -55,12 +56,14 @@ final class AppState: ObservableObject {
          favorites: FavoritesStore = FavoritesStore(),
          poseLibrary: PoseLibrary = PoseLibrary(),
          videoInput: VideoInputManager = VideoInputManager(),
-         photoLibrary: PhotoLibraryStore = PhotoLibraryStore()) {
+         photoLibrary: PhotoLibraryStore = PhotoLibraryStore(),
+         retouch: RetouchStore = RetouchStore()) {
         self.settings = settings
         self.favorites = favorites
         self.poseLibrary = poseLibrary
         self.videoInput = videoInput
         self.photoLibrary = photoLibrary
+        self.retouch = retouch
     }
 
     /// 当前输入能力说明（供首页与设置页展示真实结论）

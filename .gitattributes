@@ -12,3 +12,5 @@
 *.zip binary
 *.psd binary
 *.xcf binary
+*.onnx binary
+*.onnx diff=astextplain

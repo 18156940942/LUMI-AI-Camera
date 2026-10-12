@@ -9,10 +9,12 @@ struct SettingsView: View {
     // 「本机数据」区读这两个 Store，必须分别订阅（子 Store 不随 AppState 转发变化）
     @EnvironmentObject private var poseLibrary: PoseLibrary
     @EnvironmentObject private var photoLibrary: PhotoLibraryStore
+    @EnvironmentObject private var retouch: RetouchStore
 
     @Environment(\.dismiss) private var dismiss
     @State private var showsPrivacyDetail = false
     @State private var showsDiagnostics = false
+    @State private var showsClearAllRetouch = false
 
     var body: some View {
         ScrollView {
@@ -22,6 +24,7 @@ struct SettingsView: View {
                 aiSettingsSection
                 gridSettingsSection
                 displaySettingsSection
+                retouchSection
                 diagnosticsSection
                 privacySection
                 versionSection
@@ -41,6 +44,14 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showsPrivacyDetail) {
             NavigationStack { PrivacyView(isFirstRun: false, onAcknowledge: nil) }
+        }
+        .confirmationDialog("删除全部精修副本？", isPresented: $showsClearAllRetouch, titleVisibility: .visible) {
+            Button("删除全部精修副本", role: .destructive) {
+                retouch.clearAllResults()
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("只删除 LUMI 内的精修结果与索引。你的原始照片、照片副本、分析记录都不受影响，中继那边也不会被通知。")
         }
         .sheet(isPresented: $showsDiagnostics) {
             NavigationStack { DiagnosticsView() }
@@ -235,8 +246,9 @@ struct SettingsView: View {
                 Text("""
                 · 使用 Apple Vision 框架在本机完成人体关键点与人脸特征点检测；
                 · 姿势推荐来自随 App 打包的离线姿势库，不需要联网；
-                · **本 App 不包含任何云端 AI 调用，也没有任何 API 密钥**，因此不存在「把密钥放进客户端」的风险；
-                · 如果你将来要接入云端 AI，请把密钥放在你自己的服务端，客户端只调用你的接口 —— 这是本项目刻意预留的边界。
+                · 上面这些开关全部是本地计算，**不联网**；
+                · 「照片精修」是**唯一**会联网的功能，而且默认关闭（见下方「云端精修」一节）；
+                · **App 里没有任何云端密钥**：密钥放在你自己电脑上的中继脚本里，客户端只连你电脑的地址。
                 """)
                 .font(.system(size: 11))
                 .foregroundStyle(LumiTheme.secondaryText)
@@ -352,15 +364,91 @@ struct SettingsView: View {
 
     // MARK: - 隐私
 
+    // MARK: - 云端精修
+
+    private var retouchSection: some View {
+        LumiCard(highlighted: settings.retouch.isEnabled) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionHeader(title: "云端精修",
+                              subtitle: "把照片发到你自己电脑上的中继脚本处理",
+                              trailingText: nil)
+
+                Toggle(isOn: Binding(
+                    get: { settings.retouch.isEnabled },
+                    set: { settings.retouch.isEnabled = $0 }
+                )) {
+                    Text("开启精修功能")
+                        .font(.system(size: 13))
+                        .foregroundStyle(LumiTheme.primaryText)
+                }
+                .tint(LumiTheme.accent)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("中继地址")
+                        .font(.system(size: 11))
+                        .foregroundStyle(LumiTheme.tertiaryText)
+                    TextField("http://172.20.10.8:8091",
+                              text: Binding(
+                                get: { settings.retouch.relayURL },
+                                set: { settings.retouch.relayURL = $0 }
+                              ))
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(LumiTheme.primaryText)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                        .padding(8)
+                        .background(LumiTheme.surfaceElevated)
+                        .clipShape(RoundedRectangle(cornerRadius: LumiTheme.smallCornerRadius, style: .continuous))
+                    if !settings.retouch.relayURL.isEmpty && settings.retouch.normalizedRelayURL == nil {
+                        Text("这个地址不合法。形如 http://172.20.10.8:8091")
+                            .font(.system(size: 10))
+                            .foregroundStyle(LumiTheme.danger)
+                    } else if let url = settings.retouch.normalizedRelayURL {
+                        Text("会连到 \(url.absoluteString)")
+                            .font(.system(size: 10))
+                            .foregroundStyle(LumiTheme.tertiaryText)
+                    }
+                }
+
+                InfoRow(label: "当前状态", value: settings.retouch.statusText)
+                InfoRow(label: "已精修照片", value: "\(retouch.retouchedCount) 张")
+
+                Text("""
+                怎么用：
+                1. 在电脑上运行 `python tools/lumi_retouch_server.py`；
+                2. 把脚本打印的地址填到上面的输入框；
+                3. 打开照片详情页，点「精修这张照片」。
+
+                画质增强、风格化调色、人像美化都在你电脑上算，照片不出本机。
+                只有「生成式改动」会继续发给你自己配置的云端服务商。
+                """)
+                .font(.system(size: 10))
+                .foregroundStyle(LumiTheme.tertiaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+                Divider().overlay(LumiTheme.stroke)
+
+                SecondaryButton(title: "删除全部精修副本", symbol: "trash", tint: LumiTheme.danger) {
+                    showsClearAllRetouch = true
+                }
+            }
+        }
+    }
+
+    // MARK: - 隐私说明
+
     private var privacySection: some View {
         LumiCard {
             VStack(alignment: .leading, spacing: 10) {
-                SectionHeader(title: "隐私说明", subtitle: "本 App 不联网上传任何影像数据", trailingText: nil)
+                SectionHeader(title: "隐私说明", subtitle: "除你主动开启的精修外，不上传任何影像数据", trailingText: nil)
 
                 InfoRow(label: "摄像头", value: "仅在内置摄像头模式使用，需你手动开启")
                 InfoRow(label: "照片", value: "仅读取你主动挑选的照片")
                 InfoRow(label: "人体姿态数据", value: "仅在本机内存中处理，不落盘、不上传")
-                InfoRow(label: "局域网", value: "仅用于连接你自建的中继流")
+                InfoRow(label: "局域网", value: "用于监看中继与照片精修中继，都只连你自建的地址")
+                InfoRow(label: "照片精修", value: settings.retouch.statusText
+                        + (settings.retouch.isEnabled ? "（照片会发到你自己的中继）" : ""))
 
                 SecondaryButton(title: "查看完整隐私与安全说明", symbol: "lock.shield") {
                     showsPrivacyDetail = true
@@ -420,7 +508,7 @@ struct SettingsView: View {
             SecondaryButton(title: "恢复参考线与显示默认值", symbol: "arrow.counterclockwise") {
                 settings.resetOverlayAndDisplay()
             }
-            LimitationBadge(text: "当前版本不做任何数据上传，因此没有「清除云端数据」这类选项。")
+            LimitationBadge(text: "照片精修不是在 App 里删除的：结果存在 App 沙盒内，可在照片详情页逐张删除精修副本；云端服务商那边是否存在记录取决于你自己配置的服务商。")
         }
     }
 }

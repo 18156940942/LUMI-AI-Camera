@@ -15,6 +15,7 @@ struct LUMIApp: App {
                 .environmentObject(appState.poseLibrary)
                 .environmentObject(appState.videoInput)
                 .environmentObject(appState.photoLibrary)
+                .environmentObject(appState.retouch)
                 .preferredColorScheme(.dark)
                 .tint(LumiTheme.accent)
         }

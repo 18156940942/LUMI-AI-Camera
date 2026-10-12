@@ -51,9 +51,24 @@ APP_GROUP_DIR = "LUMI"
 TEST_GROUP_DIR = "LUMITests"
 
 # 资源：相对仓库根
-ASSETS_REL = "LUMI/Resources/Assets.xcassets"
-POSE_LIBRARY_REL = "LUMI/Resources/pose_library.json"
+RESOURCE_DIR_REL = "LUMI/Resources"
 INFO_PLIST_REL = "LUMI/Resources/Info.plist"
+
+# 会被当成资源挂进 Copy Bundle Resources 的扩展名（白名单）。
+#
+# 为什么用白名单而不是「Resources 下除 Info.plist 以外全要」：
+# 目录里混进 .DS_Store、编辑器临时文件、.orig 备份时，后者会把它们也拷进 App 包。
+#
+# 为什么改成扫描而不是写死几个常量：
+# 之前这里写死为 `(ASSETS_REL, POSE_LIBRARY_REL)`，后来新增
+# `retouch_presets.json` 时就漏了 —— App 能编译、能装、能启动，
+# 直到运行时读不到预设目录才会发现。这类「忘了往构建阶段加资源」的问题
+# 只有真机跑起来才暴露，所以改成自动扫描，从结构上消掉。
+RESOURCE_EXTS = {
+    ".xcassets", ".json", ".png", ".jpg", ".jpeg", ".heic", ".webp", ".pdf",
+    ".plist", ".strings", ".stringsdict", ".ttf", ".otf", ".wav", ".mp3", ".m4a", ".caf",
+    ".mlmodel", ".mlmodelc", ".txt", ".csv",
+}
 
 # 这两个目录不进 Xcode 工程（文档 / 外部工具脚本），避免污染 Build Phases
 PRUNED_DIRS = {"docs", "scripts", "tools", ".github", ".git", ".workbuddy"}
@@ -125,13 +140,94 @@ def collect_swift_files(root: Path, subdir: str) -> list[str]:
 
 
 # ----------------------------------------------------------------------------
+# 收集资源文件
+# ----------------------------------------------------------------------------
+
+# Xcode 的 lastKnownFileType 提示。认不出来就用 "file"（Xcode 仍能正确处理）。
+FILE_TYPE_BY_EXT = {
+    ".xcassets": "folder.assetcatalog",
+    ".json": "text.json",
+    ".plist": "text.plist.xml",
+    ".strings": "text.plist.strings",
+    ".stringsdict": "text.plist.stringsdict",
+    ".png": "image.png",
+    ".jpg": "image.jpeg",
+    ".jpeg": "image.jpeg",
+    ".heic": "image.heic",
+    ".webp": "image.webp",
+    ".pdf": "image.pdf",
+    ".ttf": "file", ".otf": "file",
+    ".wav": "audio.wav", ".mp3": "audio.mp3", ".m4a": "audio.m4a", ".caf": "audio.x-caf",
+    ".mlmodel": "file.mlmodel", ".mlmodelc": "folder.mlmodelc",
+    ".txt": "text", ".csv": "text.csv",
+}
+
+
+def file_type_for(name: str) -> str:
+    return FILE_TYPE_BY_EXT.get(Path(name).suffix.lower(), "file")
+
+
+def collect_resources(root: Path) -> list[str]:
+    """扫描 LUMI/Resources，返回应挂进工程与 Copy Bundle Resources 的资源路径。
+
+    返回相对仓库根的 posix 路径，按路径排序（保证生成结果确定、重复运行无 diff）。
+
+    `.xcassets` 是**目录**，要被当成一个不透明的资源整体，不能往里递归 ——
+    递归下去只会找到一堆 `Contents.json`，把它们当资源是错的。
+    """
+    base = root / RESOURCE_DIR_REL
+    if not base.is_dir():
+        return []
+
+    found: list[str] = []
+
+    for dirpath, dirnames, filenames in os.walk(base):
+        kept: list[str] = []
+        for name in sorted(dirnames):
+            if name.startswith(".") or name in PRUNED_DIRS:
+                continue
+            if Path(name).suffix in RESOURCE_EXTS:
+                # 目录形态的资源（如 Assets.xcassets）：整体收进来，不往下走
+                full = Path(dirpath) / name
+                found.append(full.relative_to(root).as_posix())
+                continue
+            kept.append(name)
+        dirnames[:] = kept
+
+        for name in sorted(filenames):
+            if name.startswith("."):
+                continue
+            if Path(name).suffix in RESOURCE_EXTS:
+                full = Path(dirpath) / name
+                found.append(full.relative_to(root).as_posix())
+
+    found = sorted(set(found))
+
+    # 资源组是按「path = 文件名」平铺渲染的，所以只支持 Resources 根下的直接文件。
+    # 出现嵌套资源就要改成嵌套 group，这里直接报错而不是悄悄生成错误路径。
+    nested = [r for r in found if "/" in r[len(RESOURCE_DIR_REL) + 1:]]
+    if nested:
+        raise ValueError(
+            "LUMI/Resources 下出现了嵌套资源，当前生成器只支持平铺结构：\n  "
+            + "\n  ".join(nested)
+            + "\n如果要支持子目录，需要把 section_groups 改成生成嵌套 group。"
+        )
+
+    return found
+
+
+# ----------------------------------------------------------------------------
 # pbxproj 文本构建
 # ----------------------------------------------------------------------------
 
 class PbxProjBuilder:
-    def __init__(self, app_sources: list[str], test_sources: list[str]) -> None:
+    def __init__(self,
+                 app_sources: list[str],
+                 test_sources: list[str],
+                 app_resources: list[str]) -> None:
         self.app_sources = app_sources
         self.test_sources = test_sources
+        self.app_resources = app_resources
         # 目录树：group 路径 -> {children}
         self.groups: dict[str, dict] = {}
 
@@ -162,15 +258,14 @@ class PbxProjBuilder:
             owner = "/".join(dirs)
             self._ensure_group_node(owner)["files"].append(rel)
 
-        # 资源文件挂到 LUMI/Resources
+        # 资源文件挂到 LUMI/Resources。
+        # Info.plist 也在其中：它只挂进「组」树，让它在 Xcode 侧栏里能点开编辑，
+        # 但不进 Resources build phase（构建阶段列表会把它排除）。
+        # 必须真的挂进某个组的 children，否则它会变成「定义却无人引用」的孤儿对象。
         res_dir = f"{APP_GROUP_DIR}/Resources"
         self._ensure_group_node(res_dir)
-        for rel in (ASSETS_REL, POSE_LIBRARY_REL):
+        for rel in self.app_resources:
             self._ensure_group_node(res_dir)["files"].append(rel)
-        # Info.plist 只挂进「组」树，让它在 Xcode 侧栏里能点开编辑；
-        # 不进 Resources build phase（构建阶段列表是独立的 app_res_files）。
-        # 注意：必须真的挂进某个组的 children，否则它会变成定义却无人引用的孤儿对象。
-        self._ensure_group_node(res_dir)["files"].append(INFO_PLIST_REL)
         # 资源目录需要挂在 LUMI 下
         if res_dir not in self._ensure_group_node(APP_GROUP_DIR)["subgroups"]:
             self._ensure_group_node(APP_GROUP_DIR)["subgroups"].append(res_dir)
@@ -198,23 +293,15 @@ class PbxProjBuilder:
                 f"lastKnownFileType = sourcecode.swift; path = {Path(rel).name}; "
                 f"sourceTree = \"<group>\"; }};"
             )
-        # 资源
-        lines.append(
-            f"\t\t{uid('PBXFileReference', ASSETS_REL)} /* Assets.xcassets */ = "
-            f"{{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; "
-            f"path = Assets.xcassets; sourceTree = \"<group>\"; }};"
-        )
-        lines.append(
-            f"\t\t{uid('PBXFileReference', POSE_LIBRARY_REL)} /* pose_library.json */ = "
-            f"{{isa = PBXFileReference; lastKnownFileType = text.json; "
-            f"path = pose_library.json; sourceTree = \"<group>\"; }};"
-        )
-        # Info.plist —— 只是给 Xcode 侧栏能点开看，不进任何 Build Phase
-        lines.append(
-            f"\t\t{uid('PBXFileReference', INFO_PLIST_REL)} /* Info.plist */ = "
-            f"{{isa = PBXFileReference; lastKnownFileType = text.plist.xml; "
-            f"path = Info.plist; sourceTree = \"<group>\"; }};"
-        )
+        # 资源：按扩展名给出 lastKnownFileType（只是给 Xcode 的提示，不认识就用 file）
+        for rel in self.app_resources:
+            fref = uid("PBXFileReference", rel)
+            name = Path(rel).name
+            lines.append(
+                f"\t\t{fref} /* {name} */ = {{isa = PBXFileReference; "
+                f"lastKnownFileType = {file_type_for(name)}; "
+                f"path = {name}; sourceTree = \"<group>\"; }};"
+            )
         return "\n".join(lines)
 
     def section_build_files(self) -> str:
@@ -231,7 +318,9 @@ class PbxProjBuilder:
                 f"{{isa = PBXBuildFile; fileRef = {uid('PBXFileReference', rel)} "
                 f"/* {Path(rel).name} */; }};"
             )
-        for rel in (ASSETS_REL, POSE_LIBRARY_REL):
+        for rel in self.app_resources:
+            if rel == INFO_PLIST_REL:
+                continue
             name = Path(rel).name
             lines.append(
                 f"\t\t{uid('PBXBuildFile', rel)} /* {name} in Resources */ = "
@@ -309,7 +398,7 @@ class PbxProjBuilder:
         )
         app_res = "".join(
             f"\t\t\t\t{uid('PBXBuildFile', r)} /* {Path(r).name} in Resources */,\n"
-            for r in (ASSETS_REL, POSE_LIBRARY_REL)
+            for r in self.app_resources if r != INFO_PLIST_REL
         )
         test_src = "".join(
             f"\t\t\t\t{uid('PBXBuildFile', r)} /* {Path(r).name} in Sources */,\n"
@@ -377,7 +466,8 @@ class PbxProjBuilder:
         ]
         app_res_files = [
             (uid("PBXBuildFile", r), f"{Path(r).name} in Resources")
-            for r in (ASSETS_REL, POSE_LIBRARY_REL)
+            # Info.plist 不作为资源拷贝进包 —— 它由 INFOPLIST_FILE 构建设置指定
+            for r in self.app_resources if r != INFO_PLIST_REL
         ]
         test_src_files = [
             (uid("PBXBuildFile", r), f"{Path(r).name} in Sources") for r in self.test_sources
@@ -752,12 +842,17 @@ def main() -> int:
 
     app_sources = collect_swift_files(root, APP_GROUP_DIR)
     test_sources = collect_swift_files(root, TEST_GROUP_DIR)
+    app_resources = collect_resources(root)
 
     if not app_sources:
         print("!! 没找到任何 App 源码，检查工作目录", file=sys.stderr)
         return 1
     if not test_sources:
         print("!! 没找到任何测试源码（LUMITests/*.swift），继续生成但测试目标会是空的", file=sys.stderr)
+    if INFO_PLIST_REL not in app_resources:
+        print(f"!! {INFO_PLIST_REL} 不在资源列表里 —— Info.plist 必须存在，否则包会缺权限声明",
+              file=sys.stderr)
+        return 1
 
     print(f"[LUMI] App 源文件 {len(app_sources)} 个")
     for rel in app_sources:
@@ -765,8 +860,11 @@ def main() -> int:
     print(f"[LUMI] 测试文件 {len(test_sources)} 个")
     for rel in test_sources:
         print(f"        · {rel}")
+    print(f"[LUMI] 资源文件 {len(app_resources)} 个")
+    for rel in app_resources:
+        print(f"        · {rel}")
 
-    builder = PbxProjBuilder(app_sources, test_sources)
+    builder = PbxProjBuilder(app_sources, test_sources, app_resources)
     builder.build_group_tree()
     content = builder.render()
 

@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "note": "精修预设目录。这是手机端与电脑端中继共用的唯一数据源：App 读它来渲染界面，tools/lumi_retouch_server.py 读它来校验请求。修改后必须同步跑 scripts/preflight.py（会校验 JSON ↔ Swift 枚举一致性）。",
+  "categories": [
+    {
+      "id": "enhance",
+      "title": "画质增强",
+      "summary": "按画面统计处理亮度、对比与细节。结果可预期，不改变画面内容。"
+    },
+    {
+      "id": "grade",
+      "title": "风格化调色",
+      "summary": "整体影调与色彩方向的调整。仍然只改色，不改内容。"
+    },
+    {
+      "id": "portrait",
+      "title": "人像美化",
+      "summary": "皮肤与面部的局部处理。刻意保留皮肤质感，不做「磨成蜡像」的过度平滑。"
+    },
+    {
+      "id": "generative",
+      "title": "生成式改动",
+      "summary": "会改变画面内容（换天、去杂物等）。必须由云端模型完成，且结果不确定。"
+    }
+  ],
+  "presets": [
+    {
+      "id": "enhance.auto",
+      "category": "enhance",
+      "title": "自动增强",
+      "detail": "按画面的亮度分布与细节量，自动决定降噪、锐化与暗部提亮的强度。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "enhance.denoise",
+      "category": "enhance",
+      "title": "降噪",
+      "detail": "保边平滑，只作用于色度通道。噪声主要落在色度上，而人眼对亮度细节更敏感，所以亮度原样保留 —— 噪点没了，细节还在。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "enhance.sharpen",
+      "category": "enhance",
+      "title": "锐化",
+      "detail": "反锐化掩模，只作用于亮度通道，避免色彩边缘出现伪影。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "enhance.shadow",
+      "category": "enhance",
+      "title": "提亮暗部",
+      "detail": "只抬升暗部曲线，高光基本保持不动，避免整张图发灰。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "enhance.dehaze",
+      "category": "enhance",
+      "title": "去雾",
+      "detail": "基于暗通道先验的对比度恢复，对逆光与雾霾场景有效。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "grade.film",
+      "category": "grade",
+      "title": "胶片感",
+      "detail": "略压高光、抬黑位、轻微偏青的分色调，模拟常见负片观感。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "grade.clean",
+      "category": "grade",
+      "title": "通透干净",
+      "detail": "提高中间调对比与适度饱和度，适合日常人像与产品。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "grade.warm",
+      "category": "grade",
+      "title": "暖调",
+      "detail": "整体色温偏暖，肤色更讨喜。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "grade.mono",
+      "category": "grade",
+      "title": "黑白",
+      "detail": "按亮度加权转灰，并保留可调的对比曲线。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "portrait.skinSoft",
+      "category": "portrait",
+      "title": "皮肤柔化",
+      "detail": "保边滤波只平滑低频皮肤区域，刻意保留毛孔与纹理，避免过度平滑。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "portrait.brightenFace",
+      "category": "portrait",
+      "title": "面部提亮",
+      "detail": "先检测人脸，再仅对脸部区域提亮与轻微提对比。检测不到人脸时不做任何处理并明确报错。",
+      "engine": "local",
+      "requiresPrompt": false
+    },
+    {
+      "id": "generative.custom",
+      "category": "generative",
+      "title": "自定义改动",
+      "detail": "用文字描述你想要的改动。会改变画面内容，结果由云端模型决定，不确定。",
+      "engine": "cloud",
+      "requiresPrompt": true
+    },
+    {
+      "id": "generative.removeObject",
+      "category": "generative",
+      "title": "去除杂物",
+      "detail": "在描述里写清要去掉什么（例如「画面左侧的路人」）。云端模型会重绘该区域。",
+      "engine": "cloud",
+      "requiresPrompt": true
+    },
+    {
+      "id": "generative.skyReplace",
+      "category": "generative",
+      "title": "替换天空",
+      "detail": "在描述里写清要换成什么天空（例如「黄昏的云」）。云端模型会重建天空区域。",
+      "engine": "cloud",
+      "requiresPrompt": true
+    }
+  ]
+}

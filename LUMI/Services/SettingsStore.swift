@@ -20,6 +20,7 @@ final class SettingsStore: ObservableObject {
         static let keepScreenAwake = "settings.keepScreenAwake"
         static let showFrameStats = "settings.showFrameStats"
         static let monitorZoom = "settings.monitorZoom"
+        static let retouch = "settings.retouch"
     }
 
     private let defaults: UserDefaults
@@ -116,6 +117,14 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(shootingNotes, forKey: Keys.shootingNotes) }
     }
 
+    // MARK: - 云端精修
+
+    /// 精修配置。默认 `isEnabled == false` —— 这个功能会把照片发出去，
+    /// 必须由用户主动开启，且界面上要写清会发生什么。
+    @Published var retouch: RetouchConfiguration {
+        didSet { save(retouch, key: Keys.retouch) }
+    }
+
     // MARK: - 初始化
 
     init(defaults: UserDefaults = .standard) {
@@ -152,6 +161,13 @@ final class SettingsStore: ObservableObject {
         self.keepsScreenAwake = defaults.object(forKey: Keys.keepScreenAwake) as? Bool ?? true
         self.hasAcknowledgedPrivacy = defaults.bool(forKey: Keys.privacyAcknowledged)
         self.shootingNotes = defaults.string(forKey: Keys.shootingNotes) ?? ""
+
+        if let data = defaults.data(forKey: Keys.retouch),
+           let decoded = try? JSONDecoder().decode(RetouchConfiguration.self, from: data) {
+            self.retouch = decoded
+        } else {
+            self.retouch = .default
+        }
         let savedZoom = defaults.double(forKey: Keys.monitorZoom)
         self.monitorZoom = savedZoom >= 1.0 ? CGFloat(min(savedZoom, 5.0)) : 1.0
     }
