@@ -11,6 +11,10 @@ project.pbxproj（OpenStep plist）的关键结构，把最容易出错的问题
   2. 有 UUID 定义但从未被引用（孤儿对象）→ 通常是漏挂到 build phase
   3. Sources 阶段漏文件 → 编译时报「Cannot find type 'XXX' in scope」
   4. 资源没进 Resources 阶段 → 运行时 pose_library.json 读不到
+  5. 【结构】objects 里每个条目必须是完整闭合的 `UUID /* … */ = { … };` 对象
+     → 字符串切割组装 pbxproj 时极易产生「孤儿属性 / 未闭合大括号」，
+       这种损坏 Xcode 同样报 "The project is damaged"，但 UUID 检查发现不了
+       （第一轮 CI 就栽在这上面，所以加了这个检查）
 
 用法：
     python3 scripts/validate_project.py
@@ -28,6 +32,87 @@ from pathlib import Path
 UUID_RE = re.compile(r"\b([0-9A-F]{24})\b")
 # 「定义」= 行首缩进两个 tab 后紧跟 UUID 再跟注释（mainGroup 这类无注释的单独处理）
 DEF_RE = re.compile(r"^\t\t([0-9A-F]{24})(?:\s+/\*.*?\*/)?\s*=", re.M)
+
+# 结构检查用：对象头前缀（两个 tab + 24 位 UUID + 注释 + ` = {`）。
+# 不锚定行尾 —— PBXBuildFile 的条目是单行对象（`… = {isa = …; fileRef = …; };`），
+# 而 PBXProject 等是跨行对象（`… = {` 独占一行）。
+ENTRY_HEADER_RE = re.compile(r"^\t\t[0-9A-F]{24} /\*.*?\*/ = \{")
+# 多行对象的闭合行（两个 tab + `};`）
+ENTRY_CLOSER_RE = re.compile(r"^\t\t\};$")
+
+
+def strip_quoted(line: str) -> str:
+    """把双引号字符串替换成空串，避免字符串里的 { } 干扰大括号计数。"""
+    return re.sub(r'"[^"]*"', '""', line)
+
+
+def check_objects_structure(text: str) -> list[str]:
+    """逐 section 验证 objects 内每个条目都是「UUID 头 + 闭合 };" 的完整对象。
+
+    这是对 UUID 引用检查的补充：当某个对象丢了头（只剩孤儿属性）时，
+    它的 UUID 可能仍出现在别处（比如 dependencies 数组里），
+    UUID 检查全绿，但 Xcode 会因为 OpenStep plist 语法错误拒绝打开工程。
+    """
+    problems: list[str] = []
+
+    match = re.search(r"^\tobjects = \{$(.*?)^\t\};$", text, re.S | re.M)
+    if not match:
+        return ["找不到 objects = { … } 块（整体结构损坏）"]
+    body = match.group(1)
+
+    sections = re.findall(
+        r"/\* Begin (\w+) section \*/\n(.*?)/\* End \1 section \*/", body, re.S
+    )
+    if not sections:
+        return ["objects 块里找不到任何 section 标记"]
+
+    for name, sec in sections:
+        depth = 0
+        entries = 0
+        for idx, line in enumerate(sec.split("\n"), start=1):
+            if not line.strip():
+                continue
+            if depth == 0:
+                if not ENTRY_HEADER_RE.match(line):
+                    problems.append(
+                        f"{name} section 第 {idx} 行：期望对象头 "
+                        f"'UUID /* … */ = {{'，实际是 {line.strip()[:60]!r}"
+                        f"（孤儿属性或未闭合对象）"
+                    )
+                    continue
+                entries += 1
+                clean = strip_quoted(line)
+                depth = clean.count("{") - clean.count("}")
+                if depth == 0:
+                    # 单行对象：必须以 }; 收尾
+                    if not line.rstrip().endswith("};"):
+                        problems.append(
+                            f"{name} section 第 {idx} 行：单行对象没有以 '}};' 收尾"
+                        )
+                elif depth < 0:
+                    problems.append(
+                        f"{name} section 第 {idx} 行：'}}' 多于 '{{'，大括号失衡"
+                    )
+                    depth = 0
+                # depth > 0：跨行对象已开启，等后续行闭合
+            else:
+                clean = strip_quoted(line)
+                depth += clean.count("{") - clean.count("}")
+                if depth == 0 and not ENTRY_CLOSER_RE.match(line):
+                    problems.append(
+                        f"{name} section 第 {idx} 行：对象以异常行收尾 {line.strip()[:60]!r}"
+                    )
+                if depth < 0:
+                    problems.append(
+                        f"{name} section 第 {idx} 行：多余的 '}}'，大括号失衡"
+                    )
+                    depth = 0
+        if depth != 0:
+            problems.append(f"{name} section：存在未闭合对象（depth 停在 {depth}）")
+        if entries == 0:
+            problems.append(f"{name} section：一个对象都没有")
+
+    return problems
 
 
 def collect_swift(root: Path, subdir: str) -> list[str]:
@@ -60,6 +145,9 @@ def main() -> int:
 
     text = pbxproj.read_text(encoding="utf-8")
     failures: list[str] = []
+
+    # ---------- 0. OpenStep plist 结构完整性（最先查：结构坏了后面都不可信） ----------
+    failures.extend(check_objects_structure(text))
 
     # ---------- 1. UUID 引用完整性 ----------
     defined = collections.Counter(DEF_RE.findall(text))
