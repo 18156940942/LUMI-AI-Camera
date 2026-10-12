@@ -10,6 +10,7 @@ struct SettingsView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var showsPrivacyDetail = false
+    @State private var showsDiagnostics = false
 
     var body: some View {
         ScrollView {
@@ -19,6 +20,7 @@ struct SettingsView: View {
                 aiSettingsSection
                 gridSettingsSection
                 displaySettingsSection
+                diagnosticsSection
                 privacySection
                 versionSection
                 resetSection
@@ -37,6 +39,9 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showsPrivacyDetail) {
             NavigationStack { PrivacyView(isFirstRun: false, onAcknowledge: nil) }
+        }
+        .sheet(isPresented: $showsDiagnostics) {
+            NavigationStack { DiagnosticsView() }
         }
     }
 
@@ -316,6 +321,31 @@ struct SettingsView: View {
         Text(text)
             .font(.system(size: 13))
             .foregroundStyle(LumiTheme.primaryText)
+    }
+
+    // MARK: - 诊断与日志
+
+    private var diagnosticsSection: some View {
+        LumiCard {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionHeader(title: "设备自检与诊断",
+                              subtitle: "真机出问题时用这个",
+                              trailingText: nil)
+
+                Text("""
+                集中查看运行环境、权限状态、视频输入的真实连接参数与**实测**帧率，\
+                并能把内存日志一键复制或导出成文本。
+                没有 Mac 时，系统日志（os.Logger）是读不出来的 —— 这个页面就是为此存在的。
+                """)
+                .font(.system(size: 11))
+                .foregroundStyle(LumiTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+                SecondaryButton(title: "打开设备自检与诊断", symbol: "stethoscope") {
+                    showsDiagnostics = true
+                }
+            }
+        }
     }
 
     // MARK: - 隐私

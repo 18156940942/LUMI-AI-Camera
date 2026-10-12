@@ -29,7 +29,7 @@ enum OrientationSupport {
         let orientations: UIInterfaceOrientationMask = enabled ? .landscape : .allButUpsideDown
         let preferences = UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: orientations)
         scene.requestGeometryUpdate(preferences) { error in
-            AppLog.app.error("方向切换请求失败: \(error.localizedDescription, privacy: .public)")
+            DiagnosticsLog.shared.error(.app, "方向切换请求失败: \(error.localizedDescription)")
         }
     }
 

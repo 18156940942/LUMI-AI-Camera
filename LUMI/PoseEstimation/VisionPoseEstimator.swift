@@ -34,7 +34,7 @@ final class VisionPoseEstimator {
                 }
                 result = Self.convert(observation: observation, timestamp: timestamp)
             } catch {
-                AppLog.pose.error("人体姿态检测失败: \(String(describing: error))")
+                DiagnosticsLog.shared.error(.pose, "人体姿态检测失败: \(String(describing: error))")
                 result = nil
             }
         }
@@ -55,7 +55,7 @@ final class VisionPoseEstimator {
                 }
                 result = Self.convert(observation: observation, timestamp: timestamp)
             } catch {
-                AppLog.pose.error("人体姿态检测失败: \(String(describing: error))")
+                DiagnosticsLog.shared.error(.pose, "人体姿态检测失败: \(String(describing: error))")
                 result = nil
             }
         }
@@ -134,7 +134,7 @@ final class VisionPoseEstimator {
                     result.detail = "眼部特征点不可用，无法判断"
                 }
             } catch {
-                AppLog.photo.error("人脸检测失败: \(String(describing: error))")
+                DiagnosticsLog.shared.error(.photo, "人脸检测失败: \(String(describing: error))")
                 result.closedEyeRisk = .notAnalyzed
                 result.detail = "人脸检测执行失败"
             }

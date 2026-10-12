@@ -148,7 +148,7 @@ final class NetworkVideoInput: NSObject, VideoInputSource {
         dataTask = task
         task.resume()
 
-        AppLog.network.info("MJPEG 中继已发起连接: \(url.absoluteString, privacy: .public)")
+        DiagnosticsLog.shared.info(.network, "MJPEG 中继已发起连接: \(url.absoluteString)")
     }
 
     // MARK: - HLS
@@ -177,7 +177,7 @@ final class NetworkVideoInput: NSObject, VideoInputSource {
         link.add(to: .main, forMode: .common)
         displayLink = link
 
-        AppLog.network.info("HLS 中继已发起连接: \(url.absoluteString, privacy: .public)")
+        DiagnosticsLog.shared.info(.network, "HLS 中继已发起连接: \(url.absoluteString)")
     }
 
     @objc private func hlsItemFailed(_ notification: Notification) {
@@ -284,7 +284,7 @@ extension NetworkVideoInput: URLSessionDataDelegate {
                     didReceive response: URLResponse,
                     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         if let httpResponse = response as? HTTPURLResponse {
-            AppLog.network.info("中继响应 HTTP \(httpResponse.statusCode, privacy: .public)")
+            DiagnosticsLog.shared.info(.network, "中继响应 HTTP \(httpResponse.statusCode)")
             if httpResponse.statusCode >= 400 {
                 completionHandler(.cancel)
                 publish(state: .failed(.networkUnreachable("中继服务返回 HTTP \(httpResponse.statusCode)")))
@@ -306,7 +306,7 @@ extension NetworkVideoInput: URLSessionDataDelegate {
         let nsError = error as NSError
         // 主动取消时不再报错
         if nsError.code == NSURLErrorCancelled { return }
-        AppLog.network.error("中继连接结束: \(error.localizedDescription, privacy: .public)")
+        DiagnosticsLog.shared.error(.network, "中继连接结束: \(error.localizedDescription)")
         publish(state: .failed(.networkUnreachable(error.localizedDescription)))
     }
 

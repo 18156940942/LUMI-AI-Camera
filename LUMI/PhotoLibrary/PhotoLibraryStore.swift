@@ -52,7 +52,7 @@ final class PhotoLibraryStore: ObservableObject {
             records = try JSONDecoder().decode([PhotoRecord].self, from: data)
             records.sort { $0.sortDate > $1.sortDate }
         } catch {
-            AppLog.photo.error("照片索引解析失败: \(String(describing: error))")
+            DiagnosticsLog.shared.error(.photo, "照片索引解析失败: \(String(describing: error))")
             lastError = "照片索引读取失败：\(error.localizedDescription)"
             records = []
         }
@@ -63,7 +63,7 @@ final class PhotoLibraryStore: ObservableObject {
             let data = try JSONEncoder().encode(records)
             try data.write(to: indexURL, options: .atomic)
         } catch {
-            AppLog.photo.error("照片索引写入失败: \(String(describing: error))")
+            DiagnosticsLog.shared.error(.photo, "照片索引写入失败: \(String(describing: error))")
             lastError = "照片索引保存失败：\(error.localizedDescription)"
         }
     }
@@ -119,7 +119,7 @@ final class PhotoLibraryStore: ObservableObject {
                 imported += 1
             } catch {
                 failed += 1
-                AppLog.photo.error("导入失败: \(error.localizedDescription)")
+                DiagnosticsLog.shared.error(.photo, "导入失败: \(error.localizedDescription)")
             }
         }
 

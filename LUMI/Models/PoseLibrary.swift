@@ -46,11 +46,11 @@ final class PoseLibrary: ObservableObject {
             poses = db.poses
             databaseVersion = db.version
             loadFailure = nil
-            AppLog.poseLibrary.info("姿势库加载完成，共 \(db.poses.count) 条，版本 \(db.version)")
+            DiagnosticsLog.shared.info(.poseLibrary, "姿势库加载完成，共 \(db.poses.count) 条，版本 \(db.version)")
         } catch {
             poses = []
             loadFailure = "姿势库解析失败：\(error.localizedDescription)"
-            AppLog.poseLibrary.error("姿势库解析失败: \(String(describing: error))")
+            DiagnosticsLog.shared.error(.poseLibrary, "姿势库解析失败: \(String(describing: error))")
         }
     }
 

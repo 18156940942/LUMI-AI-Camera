@@ -107,7 +107,7 @@ final class UVCVideoInput: NSObject, VideoInputSource {
         // 监听设备被拔掉（官方推荐做法：KVO 观察 isConnected）
         connectionObservation = device.observe(\.isConnected, options: [.new]) { [weak self] _, change in
             guard let self, let connected = change.newValue, !connected else { return }
-            AppLog.videoInput.error("外接采集设备已断开")
+            DiagnosticsLog.shared.error(.videoInput, "外接采集设备已断开")
             self.publish(state: .failed(.sessionRuntimeError("外接采集设备已断开（可能被拔出或供电不足）")))
         }
 
@@ -130,7 +130,7 @@ final class UVCVideoInput: NSObject, VideoInputSource {
                     device.activeFormat = format
                     device.unlockForConfiguration()
                 } catch {
-                    AppLog.videoInput.error("设置采集格式失败（将继续使用默认格式）: \(String(describing: error))")
+                    DiagnosticsLog.shared.error(.videoInput, "设置采集格式失败（将继续使用默认格式）: \(String(describing: error))")
                 }
             }
 
@@ -204,7 +204,7 @@ final class UVCVideoInput: NSObject, VideoInputSource {
                 self.isRunning = true
                 self.publish(state: .running)
             }
-            AppLog.videoInput.info("UVC 采集已启动: \(info.name, privacy: .public) \(info.resolutionText, privacy: .public) @ \(info.frameRateText, privacy: .public)")
+            DiagnosticsLog.shared.info(.videoInput, "UVC 采集已启动: \(info.name) \(info.resolutionText) @ \(info.frameRateText)")
         }
     }
 

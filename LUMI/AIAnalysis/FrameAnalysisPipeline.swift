@@ -41,6 +41,25 @@ final class FrameAnalysisPipeline {
         var personDetectedInLastFrame: Bool = false
 
         var analysisFPS: Double = 0
+
+        /// 由相邻两次统计的「累计分析帧数 + 时间点」算出滚动帧率。
+        ///
+        /// 抽成纯函数是为了能被单元测试守住：这个值直接决定「实时分析到底跑得多快、
+        /// 会不会拖垮耗电与发热」的判断，写错了会给出一个看着正常、其实毫无意义的数字。
+        ///
+        /// 边界约定（都有测试）：
+        /// - 还没有基线 → 0（宁可显示 0，也不拿开机时长当分母）
+        /// - 时间没有前进 → 0（不产生除零或无穷大）
+        /// - 帧数倒退（`reset()` 之后）→ 0，而不是负数
+        static func rollingRate(previousFrames: Int,
+                                currentFrames: Int,
+                                elapsed: TimeInterval,
+                                hasBaseline: Bool) -> Double {
+            guard hasBaseline, elapsed > 0 else { return 0 }
+            let delta = currentFrames - previousFrames
+            guard delta > 0 else { return 0 }
+            return Double(delta) / elapsed
+        }
     }
 
     // MARK: - 回调（均在主线程调用）
@@ -63,6 +82,15 @@ final class FrameAnalysisPipeline {
 
     private var lastSubmitTime: CFTimeInterval = 0
     private var lastDiagnosticsPublish: CFTimeInterval = 0
+
+    /// 实测分析帧率的滚动窗口：上一次统计的时间点与当时的累计分析帧数。
+    /// `fpsWindowStart == 0` 表示还没有基线，此时帧率按 0 报告（而不是拿
+    /// 累计帧数去除以开机时长 —— 那会永远算出接近 0 的值）。
+    /// 与 `diagnostics` 共用 `stateLock` 保护：`publishDiagnostics` 在分析队列上跑，
+    /// `reset()` 在主线程上跑。
+    private var fpsWindowStart: CFTimeInterval = 0
+    private var fpsWindowFrames: Int = 0
+
     private var options: Options
     private var diagnostics = Diagnostics()
 
@@ -86,6 +114,8 @@ final class FrameAnalysisPipeline {
     func reset() {
         stateLock.lock()
         diagnostics = Diagnostics()
+        fpsWindowStart = 0
+        fpsWindowFrames = 0
         stateLock.unlock()
     }
 
@@ -261,10 +291,23 @@ final class FrameAnalysisPipeline {
 
         stateLock.lock()
         var snapshot = diagnostics
+        let previousWindowStart = fpsWindowStart
+        let previousWindowFrames = fpsWindowFrames
+        fpsWindowStart = now
+        fpsWindowFrames = snapshot.analyzedFrames
         stateLock.unlock()
 
-        let analyzed = max(snapshot.analyzedFrames, 1)
-        snapshot.analysisFPS = Double(analyzed) / max(now - (snapshot.lastAnalysisAt.map { _ in 0 } ?? 0), 1)
+        // 实测分析帧率 = 本窗口内新增的分析帧数 ÷ 窗口时长。
+        //
+        // 这里刻意不用「累计帧数 ÷ 开机时长」：CACurrentMediaTime() 是**开机以来的秒数**
+        // （真机上动辄几万秒），拿它当分母会让帧率恒等于 0.0 —— 属于「界面上有指标、
+        // 但数值是废数」的那类错误。诊断页要显示它，所以必须先让它是对的。
+        snapshot.analysisFPS = Diagnostics.rollingRate(
+            previousFrames: previousWindowFrames,
+            currentFrames: snapshot.analyzedFrames,
+            elapsed: now - previousWindowStart,
+            hasBaseline: previousWindowStart > 0
+        )
 
         DispatchQueue.main.async { [weak self] in
             self?.onDiagnostics?(snapshot)

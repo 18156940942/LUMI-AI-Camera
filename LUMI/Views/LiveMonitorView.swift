@@ -14,6 +14,7 @@ struct LiveMonitorView: View {
     @StateObject private var viewModel = MonitorViewModel()
     @State private var showsCoachSheet = false
     @State private var showsSettingsSheet = false
+    @State private var showsDiagnosticsSheet = false
 
     var body: some View {
         NavigationStack {
@@ -43,6 +44,12 @@ struct LiveMonitorView: View {
                         }
                         .disabled(videoInput.previewProvider == nil)
                         Button {
+                            showsDiagnosticsSheet = true
+                        } label: {
+                            Image(systemName: "stethoscope")
+                                .foregroundStyle(LumiTheme.secondaryText)
+                        }
+                        Button {
                             showsSettingsSheet = true
                         } label: {
                             Image(systemName: "gearshape")
@@ -60,6 +67,9 @@ struct LiveMonitorView: View {
         }
         .sheet(isPresented: $showsSettingsSheet) {
             NavigationStack { SettingsView() }
+        }
+        .sheet(isPresented: $showsDiagnosticsSheet) {
+            NavigationStack { DiagnosticsView() }
         }
         .onAppear {
             viewModel.syncRelayDraft(from: settings)
@@ -160,25 +170,33 @@ struct LiveMonitorView: View {
     private var noticeArea: some View {
         if let notice = videoInput.capabilityNotice,
            viewModel.dismissedFailure == nil || currentFailure != viewModel.dismissedFailure {
-            HardwareRequirementCard(
-                title: noticeTitle,
-                requirement: notice,
-                reason: VideoInputCapability.supportsExternalCamera
-                    ? "本机支持外接 UVC 设备，请检查采集卡是否为免驱 UVC 型号、是否使用了数据线、是否接了供电集线器。"
-                    : VideoInputCapability.externalCameraUnavailableReason,
-                alternatives: noticeAlternatives,
-                icon: noticeSymbol,
-                tint: noticeTint
-            )
-            .overlay(alignment: .topTrailing) {
-                Button {
-                    viewModel.dismissedFailure = currentFailure
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(LumiTheme.tertiaryText)
-                        .padding(6)
+            VStack(spacing: 10) {
+                HardwareRequirementCard(
+                    title: noticeTitle,
+                    requirement: notice,
+                    reason: VideoInputCapability.supportsExternalCamera
+                        ? "本机支持外接 UVC 设备，请检查采集卡是否为免驱 UVC 型号、是否使用了数据线、是否接了供电集线器。"
+                        : VideoInputCapability.externalCameraUnavailableReason,
+                    alternatives: noticeAlternatives,
+                    icon: noticeSymbol,
+                    tint: noticeTint
+                )
+                .overlay(alignment: .topTrailing) {
+                    Button {
+                        viewModel.dismissedFailure = currentFailure
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(LumiTheme.tertiaryText)
+                            .padding(6)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+
+                // 连接失败时最需要的不是「再试一次」，而是「到底卡在哪一步」。
+                // 所以把诊断入口直接放在错误卡片下方，而不是让人去设置里翻。
+                SecondaryButton(title: "打开设备自检与诊断", symbol: "stethoscope") {
+                    showsDiagnosticsSheet = true
+                }
             }
         }
     }

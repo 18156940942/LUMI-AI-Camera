@@ -125,6 +125,14 @@ SYSTEM_TYPES = {
     "Content", "Context", "Format", "JointName", "Position", "Preview", "DiscoverySession",
     "ResponseDisposition", "Self", "CodingKeys", "DeviceType", "AuthorizationStatus",
     "RenderingMode", "SymbolVariants", "Axis", "AllCases", "MediaType",
+    # 诊断与自检模块引入的系统符号（新增文件 DiagnosticsLog / DiagnosticsContext /
+    # DiagnosticsReport / RelayProbe / DiagnosticsView 用到）。逐个核对过：都是真实存在的
+    # 系统 API，不是拼写错误 —— 白名单只加「已确认真实存在」的名字。
+    "NSHomeDirectory",              # Foundation 函数：取沙盒家目录，用于查可用磁盘
+    "NSURLErrorTimedOut",           # Foundation 错误码：中继探测超时判定
+    "PHAuthorizationStatus",        # Photos：照片库权限的三种状态判定
+    "ShareLink", "ThermalState",    # SwiftUI 分享控件 / ProcessInfo.ThermalState 的裸类型名
+    "UInt64", "DispatchGroup",      # 标准库无符号整型 / Dispatch 并发组
 }
 
 DECL_RE = re.compile(

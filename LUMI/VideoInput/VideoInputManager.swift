@@ -45,6 +45,10 @@ final class VideoInputManager: NSObject, ObservableObject {
     private var source: VideoInputSource?
     private(set) var currentKind: VideoInputKind?
 
+    /// 每次 `start` 复位。只用于「首帧到达」记一次日志 ——
+    /// 「已连接」和「真的在出图」是两件事，日志必须能区分，否则排查时会被误导。
+    private var hasLoggedFirstFrame = false
+
     /// 帧率统计（滚动窗口，只统计真实到达的帧）
     private let fpsLock = NSLock()
     private var frameTimestamps: [Double] = []
@@ -82,6 +86,13 @@ final class VideoInputManager: NSObject, ObservableObject {
                exposureMeterEnabled: Bool = true) {
         stop()
 
+        // 每次启动都先记一条「请求了什么」。真机排查时，这一条能立刻区分
+        // 「参数没配对」和「参数对了但连不上」——这是最常见的一类混淆。
+        DiagnosticsLog.shared.info(.videoInput,
+                                   "请求启动视频输入：\(kind.title)｜中继地址 \(relay.displayURL)"
+                                   + "｜模式 \(relay.mode.rawValue)｜分析帧率上限 \(analysisFPS) fps")
+        hasLoggedFirstFrame = false
+
         pipeline.update(options: FrameAnalysisPipeline.Options(
             poseEnabled: poseAnalysisEnabled,
             compositionEnabled: compositionAnalysisEnabled,
@@ -100,6 +111,8 @@ final class VideoInputManager: NSObject, ObservableObject {
             state = .unsupported(reason: VideoInputCapability.externalCameraUnavailableReason)
             previewProvider = nil
             deviceInfo = nil
+            DiagnosticsLog.shared.warning(.videoInput,
+                                          "已提前拦截 [\(failure.code)]：本机不支持 UVC 外接，未发起任何连接尝试")
             return
         }
 
@@ -122,19 +135,23 @@ final class VideoInputManager: NSObject, ObservableObject {
 
         do {
             try newSource.start()
+            DiagnosticsLog.shared.info(.videoInput, "视频输入已启动：\(kind.title)（等待首帧以确认真实出图）")
         } catch let failure as VideoInputFailure {
             state = .failed(failure)
             capabilityNotice = failure.message + " " + failure.recoverySuggestion
-            AppLog.videoInput.error("启动视频输入失败 [\(failure.code, privacy: .public)]: \(failure.message, privacy: .public)")
+            DiagnosticsLog.shared.error(.videoInput, "启动视频输入失败 [\(failure.code)]: \(failure.message)")
         } catch {
             let failure = VideoInputFailure.configurationFailed(error.localizedDescription)
             state = .failed(failure)
             capabilityNotice = failure.message
-            AppLog.videoInput.error("启动视频输入失败: \(error.localizedDescription, privacy: .public)")
+            DiagnosticsLog.shared.error(.videoInput, "启动视频输入失败: \(error.localizedDescription)")
         }
     }
 
     func stop() {
+        if let currentKind {
+            DiagnosticsLog.shared.info(.videoInput, "停止视频输入：\(currentKind.title)")
+        }
         source?.stop()
         source = nil
         currentKind = nil
@@ -229,6 +246,10 @@ extension VideoInputManager: VideoInputSourceDelegate {
             self.state = state
             if case .failed(let failure) = state {
                 self.capabilityNotice = failure.message + "\n" + failure.recoverySuggestion
+                DiagnosticsLog.shared.error(.videoInput,
+                                            "状态转为异常 [\(failure.code)]：\(failure.message)")
+            } else {
+                DiagnosticsLog.shared.info(.videoInput, "状态转为：\(state.shortLabel)")
             }
         }
     }
@@ -255,6 +276,7 @@ extension VideoInputManager: VideoInputSourceDelegate {
             guard let self, self.source === source else { return }
             self.recordFrame(timestamp: timestamp > 0 ? timestamp : Date().timeIntervalSince1970)
             self.stats = source.stats
+            self.logFirstFrameIfNeeded(width: Int(frameSize.width), height: Int(frameSize.height))
         }
     }
 
@@ -270,6 +292,15 @@ extension VideoInputManager: VideoInputSourceDelegate {
             self.lastFrameImage = image
             self.recordFrame(timestamp: timestamp > 0 ? timestamp : Date().timeIntervalSince1970)
             self.stats = source.stats
+            self.logFirstFrameIfNeeded(width: image.width, height: image.height)
         }
+    }
+
+    /// 只在整段会话里记一次「首帧到达」。
+    private func logFirstFrameIfNeeded(width: Int, height: Int) {
+        guard !hasLoggedFirstFrame else { return }
+        hasLoggedFirstFrame = true
+        DiagnosticsLog.shared.info(.videoInput,
+                                   "收到首帧 \(width)×\(height)：确认输入真的在出图，分析与统计已开始")
     }
 }
