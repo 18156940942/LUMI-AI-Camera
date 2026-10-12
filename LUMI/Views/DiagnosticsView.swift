@@ -12,9 +12,13 @@ import UIKit
 /// 取不到就显示「未取得」。
 struct DiagnosticsView: View {
 
-    @EnvironmentObject private var app: AppState
     @EnvironmentObject private var settings: SettingsStore
     @EnvironmentObject private var videoInput: VideoInputManager
+    // 报告里会写入姿势库/照片副本/收藏的数量。这三个必须各自订阅，
+    // 否则打开诊断页时可能写进过期值（例如姿势库其实已加载却报「未加载」）。
+    @EnvironmentObject private var poseLibrary: PoseLibrary
+    @EnvironmentObject private var photoLibrary: PhotoLibraryStore
+    @EnvironmentObject private var favorites: FavoritesStore
 
     @ObservedObject private var log = DiagnosticsLog.shared
     @Environment(\.dismiss) private var dismiss
@@ -203,10 +207,10 @@ struct DiagnosticsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: "本地数据", subtitle: nil, trailingText: nil)
                 InfoRow(label: "姿势库版本",
-                        value: app.poseLibrary.databaseVersion == 0 ? "未加载" : "v\(app.poseLibrary.databaseVersion)")
-                InfoRow(label: "姿势库条目", value: "\(app.poseLibrary.poses.count) 条")
-                InfoRow(label: "照片副本", value: "\(app.photoLibrary.records.count) 张")
-                InfoRow(label: "姿势收藏", value: "\(app.favorites.favoritePoseIDs.count) 条")
+                        value: poseLibrary.databaseVersion == 0 ? "未加载" : "v\(poseLibrary.databaseVersion)")
+                InfoRow(label: "姿势库条目", value: "\(poseLibrary.poses.count) 条")
+                InfoRow(label: "照片副本", value: "\(photoLibrary.records.count) 张")
+                InfoRow(label: "姿势收藏", value: "\(favorites.favoritePoseIDs.count) 条")
                 InfoRow(label: "日志条数",
                         value: "\(log.entries.count) 条（错误 \(log.count(of: .error)) / 警告 \(log.count(of: .warning))）")
             }
@@ -421,10 +425,10 @@ struct DiagnosticsView: View {
         sections.append(DiagnosticsReport.Section(
             title: "本地数据",
             lines: [
-                "姿势库版本：\(app.poseLibrary.databaseVersion == 0 ? "未加载" : "v\(app.poseLibrary.databaseVersion)")",
-                "姿势库条目：\(app.poseLibrary.poses.count) 条",
-                "照片副本：\(app.photoLibrary.records.count) 张",
-                "姿势收藏：\(app.favorites.favoritePoseIDs.count) 条"
+                "姿势库版本：\(poseLibrary.databaseVersion == 0 ? "未加载" : "v\(poseLibrary.databaseVersion)")",
+                "姿势库条目：\(poseLibrary.poses.count) 条",
+                "照片副本：\(photoLibrary.records.count) 张",
+                "姿势收藏：\(favorites.favoritePoseIDs.count) 条"
             ]))
 
         var relayLines = [

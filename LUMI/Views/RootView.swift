@@ -8,6 +8,15 @@ struct RootView: View {
 
     @EnvironmentObject private var app: AppState
 
+    /// 必须直接订阅 `SettingsStore`，不能只订阅 `AppState`。
+    ///
+    /// 原因（这是一个真实踩过的坑）：`AppState.settings` 是普通 `let`，
+    /// 子 Store 变化时 `AppState` **不会**转发 `objectWillChange`。
+    /// 如果这里写成 `app.settings.hasAcknowledgedPrivacy`，那么点击「我已了解」后
+    /// 值确实被改成了 `true`，但这个视图从不重算、Binding 的 get 从不重读，
+    /// 全屏页就会一直盖着 —— 表现就是「点了没反应」。
+    @EnvironmentObject private var settings: SettingsStore
+
     var body: some View {
         TabView(selection: $app.selectedTab) {
             HomeView()
@@ -32,11 +41,12 @@ struct RootView: View {
         }
         .tint(LumiTheme.accent)
         .fullScreenCover(isPresented: Binding(
-            get: { !app.settings.hasAcknowledgedPrivacy },
+            get: { !settings.hasAcknowledgedPrivacy },
+            // 只允许通过页面内的确认按钮关闭，所以这里刻意不处理写入。
             set: { _ in }
         )) {
             PrivacyView(isFirstRun: true) {
-                app.settings.hasAcknowledgedPrivacy = true
+                settings.hasAcknowledgedPrivacy = true
             }
         }
     }

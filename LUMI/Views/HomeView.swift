@@ -7,7 +7,14 @@ import SwiftUI
 struct HomeView: View {
 
     @EnvironmentObject private var app: AppState
+    @EnvironmentObject private var settings: SettingsStore
     @EnvironmentObject private var videoInput: VideoInputManager
+    // 「本机数据」与入口副标题读的是这三个 Store。必须逐个订阅：
+    // `AppState` 里的子 Store 是普通 let，不会转发 objectWillChange，
+    // 只订阅 `app` 的话，收藏/导入照片后首页数字不会刷新。
+    @EnvironmentObject private var poseLibrary: PoseLibrary
+    @EnvironmentObject private var favorites: FavoritesStore
+    @EnvironmentObject private var photoLibrary: PhotoLibraryStore
 
     @State private var showsSettings = false
 
@@ -81,9 +88,9 @@ struct HomeView: View {
                     StatusPill(text: videoInput.state.shortLabel,
                                color: stateColor,
                                symbol: stateSymbol)
-                    StatusPill(text: app.settings.videoInputKind.title,
+                    StatusPill(text: settings.videoInputKind.title,
                                color: LumiTheme.accent,
-                               symbol: app.settings.videoInputKind.symbolName)
+                               symbol: settings.videoInputKind.symbolName)
                     if VideoInputCapability.supportsExternalCamera && videoInput.externalDeviceCount > 0 {
                         StatusPill(text: "已发现 \(videoInput.externalDeviceCount) 台外接设备",
                                    color: LumiTheme.success,
@@ -178,9 +185,9 @@ struct HomeView: View {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
                       spacing: 10) {
                 entryCard(tab: .monitor, title: "实时监看", subtitle: "真实相机画面 · 网格与参考线", symbol: "rectangle.on.rectangle")
-                entryCard(tab: .pose, title: "AI 姿势助手", subtitle: "\(app.poseLibrary.poses.count) 条离线姿势库", symbol: "figure.walk.motion")
+                entryCard(tab: .pose, title: "AI 姿势助手", subtitle: "\(poseLibrary.poses.count) 条离线姿势库", symbol: "figure.walk.motion")
                 coachCard
-                entryCard(tab: .photos, title: "照片管理", subtitle: "\(app.photoLibrary.records.count) 张已导入副本", symbol: "photo.stack")
+                entryCard(tab: .photos, title: "照片管理", subtitle: "\(photoLibrary.records.count) 张已导入副本", symbol: "photo.stack")
                 entryCard(tab: .tools, title: "摄影工具", subtitle: "网格 · 构图比例 · 拍摄备注", symbol: "squareshape.split.2x2")
                 settingsCard
             }
@@ -228,7 +235,7 @@ struct HomeView: View {
                 Text("实时姿势指导")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(LumiTheme.primaryText)
-                Text(app.settings.livePoseEnabled ? "已开启 · 需要视频输入" : "默认关闭 · 需手动开启")
+                Text(settings.livePoseEnabled ? "已开启 · 需要视频输入" : "默认关闭 · 需手动开启")
                     .font(.system(size: 11))
                     .foregroundStyle(LumiTheme.tertiaryText)
                     .lineLimit(2)
@@ -281,11 +288,11 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(title: "本机数据", subtitle: "全部存储在设备本地，不上传")
                 HStack(spacing: 14) {
-                    MetricTile(label: "姿势库", value: "\(app.poseLibrary.poses.count)", caption: "条离线姿势")
-                    MetricTile(label: "已收藏", value: "\(app.favorites.favoritePoseIDs.count)", caption: "条姿势")
-                    MetricTile(label: "照片副本", value: "\(app.photoLibrary.records.count)", caption: "张（App 内）")
+                    MetricTile(label: "姿势库", value: "\(poseLibrary.poses.count)", caption: "条离线姿势")
+                    MetricTile(label: "已收藏", value: "\(favorites.favoritePoseIDs.count)", caption: "条姿势")
+                    MetricTile(label: "照片副本", value: "\(photoLibrary.records.count)", caption: "张（App 内）")
                 }
-                if let failure = app.poseLibrary.loadFailure {
+                if let failure = poseLibrary.loadFailure {
                     Text(failure)
                         .font(.system(size: 11))
                         .foregroundStyle(LumiTheme.danger)

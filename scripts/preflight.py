@@ -21,6 +21,15 @@ LUMI —— 提交前预检（Windows 可用，不需要 Mac）
   4. Swift 源码交叉引用
      测试与 App 源码里引用的类型名是否真实存在（抓拼写错误）。
 
+  5. 协议一致性
+     `Hashable` 能否合成、`init` 是否漏赋值。
+
+  6. SwiftUI 观察链完整性
+     View 读了某个 Store 却没有通过 `@EnvironmentObject` 订阅它。
+     `AppState` 持有的子 Store 是普通 `let`，不会转发 `objectWillChange`，
+     所以「只订阅 AppState 却读 app.settings.x」的视图永远不会重算 ——
+     能编译、能过单元测试，只有上真机点一下才暴露。这类缺陷必须在这里拦住。
+
 用法：
     python3 scripts/preflight.py
 
@@ -138,7 +147,7 @@ ROTATION_ENUMS = {
 
 
 def validate_pose_library() -> None:
-    head("1/4  姿势库 JSON ↔ Swift 枚举 交叉校验")
+    head("1/6  姿势库 JSON ↔ Swift 枚举 交叉校验")
 
     json_path = ROOT / "LUMI" / "Resources" / "pose_library.json"
     types_path = ROOT / "LUMI" / "Models" / "PoseTypes.swift"
@@ -325,10 +334,11 @@ def main() -> int:
     print(f"工程根目录：{ROOT}")
 
     validate_pose_library()
-    run_script("2/5  重新生成 Xcode 工程文件", "generate_xcodeproj.py")
-    run_script("3/5  校验 Xcode 工程结构（含 OpenStep 文法解析）", "validate_project.py")
-    run_script("4/5  Swift 源码交叉引用检查", "check_symbols.py", "--all")
-    run_script("5/5  协议一致性检查（Hashable 合成）", "check_conformance.py")
+    run_script("2/6  重新生成 Xcode 工程文件", "generate_xcodeproj.py")
+    run_script("3/6  校验 Xcode 工程结构（含 OpenStep 文法解析）", "validate_project.py")
+    run_script("4/6  Swift 源码交叉引用检查", "check_symbols.py", "--all")
+    run_script("5/6  协议一致性检查（Hashable 合成 / init 完整性）", "check_conformance.py")
+    run_script("6/6  SwiftUI 观察链完整性检查", "check_observation.py")
 
     head("预检结果")
     for item in PASSED:

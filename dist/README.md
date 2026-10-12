@@ -4,25 +4,25 @@
 
 ## 里面有什么
 
-| 文件 | 说明 |
-|---|---|
+| 文件                          | 说明                                             |
+| --------------------------- | ---------------------------------------------- |
 | `LUMI-unsigned-1.0.0-1.ipa` | 未签名的真机包（arm64 / `iphoneos`），需要自签后才能装到 iPhone 上 |
 
 ## 构建来源（可复核）
 
-| 项 | 值 |
-|---|---|
-| CI 运行 | GitHub Actions run **#38204726462** |
-| 运行链接 | https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38204726462 |
-| 提交 | `9174e6da`（本次交付源码的文件树与该提交**完全一致**，100 个文件逐一比对过 SHA） |
-| Runner | `macos-15` |
-| Xcode | **16.4** |
-| SDK | iPhoneOS **18.5**（部署目标 iOS 17.0） |
-| 编译结果 | **0 error** |
-| 单元测试 | **`Executed 288 tests, with 0 failures`** → `** TEST SUCCEEDED **`（14 个测试类） |
-| 总耗时 | 13 分 23 秒 |
-| Bundle ID | `com.lumi.aicamera` |
-| 版本 | `1.0.0` (build 1) |
+| 项         | 值                                                                           |
+| --------- | --------------------------------------------------------------------------- |
+| CI 运行     | GitHub Actions run **#38204726462**                                         |
+| 运行链接      | <https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38204726462>    |
+| 提交        | `9174e6da`（本次交付源码的文件树与该提交**完全一致**，100 个文件逐一比对过 SHA）                         |
+| Runner    | `macos-15`                                                                  |
+| Xcode     | **16.4**                                                                    |
+| SDK       | iPhoneOS **18.5**（部署目标 iOS 17.0）                                            |
+| 编译结果      | **0 error**                                                                 |
+| 单元测试      | **`Executed 288 tests, with 0 failures`** → `** TEST SUCCEEDED **`（14 个测试类） |
+| 总耗时       | 13 分 23 秒                                                                   |
+| Bundle ID | `com.lumi.aicamera`                                                         |
+| 版本        | `1.0.0` (build 1)                                                           |
 
 ## 校验值
 

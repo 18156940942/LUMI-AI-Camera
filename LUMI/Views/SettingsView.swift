@@ -4,9 +4,11 @@ import UIKit
 /// 页面 F：设置
 struct SettingsView: View {
 
-    @EnvironmentObject private var app: AppState
     @EnvironmentObject private var settings: SettingsStore
     @EnvironmentObject private var videoInput: VideoInputManager
+    // 「本机数据」区读这两个 Store，必须分别订阅（子 Store 不随 AppState 转发变化）
+    @EnvironmentObject private var poseLibrary: PoseLibrary
+    @EnvironmentObject private var photoLibrary: PhotoLibraryStore
 
     @Environment(\.dismiss) private var dismiss
     @State private var showsPrivacyDetail = false
@@ -381,9 +383,9 @@ struct SettingsView: View {
                 SectionHeader(title: "版本信息", subtitle: nil, trailingText: nil)
                 InfoRow(label: "App 版本", value: appVersionText)
                 InfoRow(label: "构建号", value: buildNumberText)
-                InfoRow(label: "姿势库版本", value: app.poseLibrary.databaseVersion == 0 ? "未加载" : "v\(app.poseLibrary.databaseVersion)")
-                InfoRow(label: "姿势库条目", value: "\(app.poseLibrary.poses.count) 条")
-                InfoRow(label: "照片副本", value: "\(app.photoLibrary.records.count) 张")
+                InfoRow(label: "姿势库版本", value: poseLibrary.databaseVersion == 0 ? "未加载" : "v\(poseLibrary.databaseVersion)")
+                InfoRow(label: "姿势库条目", value: "\(poseLibrary.poses.count) 条")
+                InfoRow(label: "照片副本", value: "\(photoLibrary.records.count) 张")
                 InfoRow(label: "系统版本", value: UIDevice.current.systemName + " " + UIDevice.current.systemVersion)
                 InfoRow(label: "设备型号", value: deviceModelText)
                 InfoRow(label: "界面语言", value: "简体中文")

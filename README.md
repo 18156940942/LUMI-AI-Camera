@@ -82,7 +82,7 @@ LUMI-AI-Camera/
 ├── LUMI.xcodeproj/                # Xcode 工程（由脚本生成，见下）
 ├── dist/                          # 预构建的未签名 ipa（已在云端真实构建并校验，见 dist/README.md）
 ├── docs/                          # 技术可行性与风险、构建安装、硬件连接、功能清单、测试说明
-├── scripts/                       # 工程生成、结构校验、预检、CI/网络辅助（共 10 个工具）
+├── scripts/                       # 工程生成、结构校验、预检、CI/网络辅助（共 11 个工具）
 ├── tools/                         # 电脑端 MJPEG 中继脚本
 └── .github/workflows/             # 云端 macOS 构建（产出未签名 ipa）
 ```
@@ -99,7 +99,7 @@ LUMI-AI-Camera/
 python scripts/preflight.py
 ```
 
-它会检查：姿势库 JSON 与 Swift 枚举是否一一对应、Xcode 工程结构是否完整（含按 OpenStep 文法**真实解析** `project.pbxproj`，而不是正则近似）、所有源码是否都挂进了 build phase、源码交叉引用的类型是否真实存在、`Hashable` 协议能否被合成、`init` 是否漏赋值。**8 项全绿再往下走**，能省掉大量「云端编译失败但不知道为什么」的时间。
+它会检查：姿势库 JSON 与 Swift 枚举是否一一对应、Xcode 工程结构是否完整（含按 OpenStep 文法**真实解析** `project.pbxproj`，而不是正则近似）、所有源码是否都挂进了 build phase、源码交叉引用的类型是否真实存在、`Hashable` 协议能否被合成、`init` 是否漏赋值、以及 **SwiftUI 观察链是否完整**（View 读了某个 Store 却没订阅它 —— 这类缺陷能编译、能过单元测试，只有真机点一下才暴露）。**9 项全绿再往下走**，能省掉大量「云端编译失败但不知道为什么」的时间。
 
 ### 第 1 步：推送到 GitHub，让云端 Mac 编译
 
