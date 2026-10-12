@@ -72,7 +72,11 @@ struct ImageViewerView: View {
                 .foregroundStyle(.white)
 
             if scale > 1.01 {
-                Text(scale.formatted(.number.precision(.fractionLength(1))) + "×")
+                // 这里刻意用 String(format:) 而不是 scale.formatted(.number.precision(...))：
+                // CGFloat 对后者有多个重载候选，Swift 5 语言模式下会报
+                // "ambiguous use of 'number'"（构建 36 上实测踩到）。项目里其余
+                // 数值格式化也都走 String(format:)，保持一致。
+                Text(String(format: "%.1f×", Double(scale)))
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
                     .foregroundStyle(.white.opacity(0.7))
                     .padding(.horizontal, 6)
