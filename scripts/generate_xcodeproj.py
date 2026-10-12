@@ -421,13 +421,21 @@ class PbxProjBuilder:
             f"\t\t}};"
         )
 
-    def section_dependencies(self) -> str:
-        return (
+    def section_dependencies(self) -> tuple[str, str]:
+        """返回 (PBXTargetDependency 对象块, PBXContainerItemProxy 对象块)，各自完整闭合。
+
+        注意：必须返回两个独立的完整对象。曾经用 `split("\\n", 1)` 从一个拼接串里拆，
+        结果第一个块只拿到对象头（大括号未闭合）、第二个块带着孤儿属性 —— 生成的
+        pbxproj 被 Xcode 判为「工程损坏」。教训：结构化数据不要用字符串切割组装。
+        """
+        dep_block = (
             f"\t\t{APP_PRODUCT_DEP} /* PBXTargetDependency */ = {{\n"
             f"\t\t\tisa = PBXTargetDependency;\n"
             f"\t\t\ttarget = {APP_TARGET_ID} /* {APP_TARGET} */;\n"
             f"\t\t\ttargetProxy = {APP_PRODUCT_DEP_PROXY} /* PBXContainerItemProxy */;\n"
-            f"\t\t}};\n"
+            f"\t\t}};"
+        )
+        proxy_block = (
             f"\t\t{APP_PRODUCT_DEP_PROXY} /* PBXContainerItemProxy */ = {{\n"
             f"\t\t\tisa = PBXContainerItemProxy;\n"
             f"\t\t\tcontainerPortal = {ROOT_OBJECT} /* Project object */;\n"
@@ -436,6 +444,7 @@ class PbxProjBuilder:
             f"\t\t\tremoteInfo = {APP_TARGET};\n"
             f"\t\t}};"
         )
+        return dep_block, proxy_block
 
     def section_build_configurations(self) -> str:
         common_project = {
@@ -578,8 +587,7 @@ class PbxProjBuilder:
 
     def render(self) -> str:
         phases = self.build_phase_blocks()
-        deps_full = self.section_dependencies()
-        dep_block, proxy_block = deps_full.split("\n", 1)
+        dep_block, proxy_block = self.section_dependencies()
 
         sections: list[tuple[str, str]] = [
             ("PBXBuildFile", self.section_build_files()),
