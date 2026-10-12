@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>zh_CN</string>
+	<key>CFBundleDisplayName</key>
+	<string>LUMI</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+
+	<!-- ===== 权限说明（App 内「设置 → 隐私说明」逐条对应） ===== -->
+	<!-- 用途：仅用于「iPhone 内置摄像头」自测模式与备用监看；不用于 Z6 II 监看。 -->
+	<key>NSCameraUsageDescription</key>
+	<string>LUMI 需要访问摄像头，仅用于「内置摄像头」备用监看模式与姿势/构图分析。你可以在 App 内随时关闭该模式；LUMI 不会在未经你允许的情况下上传任何画面。</string>
+	<!-- 用途：读取你主动挑选的照片，用于清晰度、闭眼、构图与姿态分析。 -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LUMI 需要读取你主动挑选的照片，用于在设备本地进行清晰度、闭眼、构图与姿态分析。照片只在你允许后读取，分析全部在本机完成。</string>
+	<!-- 用途：把分析后的副本存入 LUMI 自己的相簿（可选功能，默认不开启）。 -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>LUMI 需要写入权限才能把处理后的照片副本存入相簿。LUMI 永远不会删除或修改你的原始照片。</string>
+	<!-- 用途：局域网访问网络中继的视频流（链路 A）。 -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>LUMI 需要访问局域网，以便播放由电脑中继过来的相机实时画面（Nikon Z6 II → HDMI 采集卡 → 电脑 → iPhone）。不连接中继时不会产生任何局域网请求。</string>
+
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- 中继流为局域网内的明文 HTTP/MJPEG，必须放开本地网络的 ATS 限制 -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string></string>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIUserInterfaceStyle</key>
+	<string>Dark</string>
+
+	<!-- 允许用户通过「文件」App / Finder 直接往 App 里投放素材与中继配置 -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+
+	<!-- 无加密导出合规声明（自用安装也需要，避免以后上架踩坑） -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

@@ -1,0 +1,220 @@
+name: Build unsigned IPA
+
+# 在没有 Mac 的情况下，用 GitHub 的 macOS 云端机器把工程编译成可自签安装的 ipa。
+#
+# 产出物：LUMI-unsigned.ipa（未签名）
+# 安装方式：用 SideStore / AltStore / Sideloadly 配合你的免费 Apple ID 自签安装。
+#           免费账号签名的 App 有效期为 7 天，到期后重新运行本工作流再装一次即可。
+#
+# 触发方式：
+#   · 推送到 main / master
+#   · 打 tag（例如 v1.0.0）
+#   · 在 GitHub 网页上手动触发（Actions → Build unsigned IPA → Run workflow）
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# 只保留最新一次运行，避免连续推送浪费 macOS 构建额度
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SCHEME: LUMI
+  PROJECT: LUMI.xcodeproj
+  BUNDLE_ID: com.lumi.aicamera
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. 快速自检（跑在 Linux 上，几秒钟，不消耗 macOS 额度）
+  # ---------------------------------------------------------------------------
+  preflight:
+    name: 工程自检
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 校验姿势库、工程结构、源码交叉引用
+        run: python3 scripts/preflight.py
+
+  # ---------------------------------------------------------------------------
+  # 2. 编译未签名 ipa
+  # ---------------------------------------------------------------------------
+  build:
+    name: 编译未签名 ipa
+    runs-on: macos-15
+    needs: preflight
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 显示构建环境
+        run: |
+          echo "===== Xcode ====="
+          xcodebuild -version
+          echo "===== 选中的开发者目录 ====="
+          xcode-select -p
+          echo "===== 可用 SDK ====="
+          xcodebuild -showsdks | grep -i ios || true
+          echo "===== 工程文件 ====="
+          ls -la LUMI.xcodeproj
+
+      # -----------------------------------------------------------------------
+      # 单元测试：先在模拟器上跑，测试不过就不出包
+      # -----------------------------------------------------------------------
+      - name: 选择可用的 iPhone 模拟器
+        id: sim
+        run: |
+          set -euo pipefail
+          # 不把型号名写死：runner 镜像里的模拟器列表会随 Xcode 更新而变化，
+          # 写死 "iPhone 15 Pro" 迟早会失败。交给脚本动态挑一台。
+          UDID=$(python3 scripts/pick_simulator.py)
+          if [ -z "$UDID" ]; then
+            echo "!! 无法确定模拟器 UDID"; exit 1
+          fi
+          echo "选中模拟器 UDID: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: 运行单元测试
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath build/TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            DEVELOPMENT_TEAM="" \
+            | tee build/test.log | tail -n 80
+
+      - name: 汇总测试结果
+        if: always()
+        run: |
+          if [ -d build/TestResults.xcresult ]; then
+            echo "===== 测试用例统计 ====="
+            xcrun xcresulttool get test-results summary \
+              --path build/TestResults.xcresult || true
+          fi
+
+      # -----------------------------------------------------------------------
+      # Archive（关闭签名）
+      # -----------------------------------------------------------------------
+      - name: 归档（未签名）
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -archivePath build/LUMI.xcarchive \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            DEVELOPMENT_TEAM="" \
+            ONLY_ACTIVE_ARCH=NO \
+            | tee build/archive.log | tail -n 60
+
+      # -----------------------------------------------------------------------
+      # 手工组装 ipa：Payload/LUMI.app → zip
+      # 说明：xcodebuild -exportArchive 在没有签名证书时会直接失败，
+      #       所以未签名 ipa 必须手工打包（这是社区通行做法）。
+      # -----------------------------------------------------------------------
+      - name: 打包为 ipa
+        run: |
+          set -euo pipefail
+          APP="build/LUMI.xcarchive/Products/Applications/LUMI.app"
+          if [ ! -d "$APP" ]; then
+            echo "!! 归档里找不到 LUMI.app，归档内容如下："
+            find build/LUMI.xcarchive -maxdepth 4 -type d | head -50
+            exit 1
+          fi
+
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist")
+          BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Info.plist")
+          echo "版本：$VERSION ($BUILD)"
+
+          rm -rf build/Payload
+          mkdir -p build/Payload
+          cp -R "$APP" build/Payload/
+
+          # 删掉可能残留的签名文件（未签名 ipa 里留着 _CodeSignature 会干扰自签工具）
+          rm -rf build/Payload/LUMI.app/_CodeSignature || true
+          rm -f  build/Payload/LUMI.app/embedded.mobileprovision || true
+
+          cd build
+          zip -qry "LUMI-unsigned-${VERSION}-${BUILD}.ipa" Payload
+          cd ..
+
+          ls -lh build/*.ipa
+          echo "IPA_PATH=build/LUMI-unsigned-${VERSION}-${BUILD}.ipa" >> "$GITHUB_ENV"
+
+      - name: 校验 ipa 结构
+        run: |
+          set -euo pipefail
+          unzip -l "$IPA_PATH" | head -30
+          unzip -l "$IPA_PATH" | grep -q "Payload/LUMI.app/LUMI$" \
+            || { echo "!! ipa 里没有可执行文件"; exit 1; }
+          unzip -l "$IPA_PATH" | grep -q "Payload/LUMI.app/Info.plist" \
+            || { echo "!! ipa 里没有 Info.plist"; exit 1; }
+          unzip -l "$IPA_PATH" | grep -q "Payload/LUMI.app/pose_library.json" \
+            || { echo "!! 姿势库没有被打进包（检查工程 Resources 阶段）"; exit 1; }
+          echo "✓ ipa 结构校验通过"
+
+      - name: 上传 ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUMI-unsigned-ipa
+          path: ${{ env.IPA_PATH }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: 上传测试结果与日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUMI-build-logs
+          path: |
+            build/test.log
+            build/archive.log
+            build/TestResults.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: 构建摘要
+        if: always()
+        run: |
+          {
+            echo "## LUMI 构建结果"
+            echo ""
+            if [ -n "${IPA_PATH:-}" ] && [ -f "$IPA_PATH" ]; then
+              echo "✅ 已生成 \`$IPA_PATH\`（未签名）"
+              echo ""
+              echo "### 下一步：安装到 iPhone"
+              echo "1. 下载本页下方的 **LUMI-unsigned-ipa** 构件并解压得到 .ipa"
+              echo "2. 在 iPhone 上安装 SideStore 或 AltStore（二者都支持用免费 Apple ID 自签）"
+              echo "3. 把 .ipa 传入自签工具，用你的 Apple ID 签名并安装"
+              echo "4. 首次打开若提示「不受信任的开发者」，去"
+              echo "   「设置 → 通用 → VPN与设备管理」里信任你的开发者证书"
+              echo ""
+              echo "⚠️ 免费账号签名的有效期是 **7 天**，到期后重新运行本工作流并重装即可。"
+            else
+              echo "❌ 未生成 ipa，请查看上方的测试与归档日志。"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

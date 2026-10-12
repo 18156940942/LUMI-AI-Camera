@@ -1,0 +1,34 @@
+# ---- Xcode / macOS ----
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager（本项目未使用，留着防止误提交）
+.build/
+.swiftpm/
+Package.resolved
+
+# ---- Python（scripts/ 与 tools/ 下的脚本）----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.python-version
+.venv/
+venv/
+
+# ---- 编辑器与系统 ----
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# ---- 中继脚本运行时产生的日志 ----
+tools/*.log

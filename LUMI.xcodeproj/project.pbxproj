@@ -1,0 +1,779 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CF3AE2904FE6FAA51E2160F8 /* CompositionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06A896CC44555639CD8002FC /* CompositionAnalyzer.swift */; };
+		7ED22388466843DD4A81D54C /* FrameAnalysisPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64D06BDB2112841D2B91D3E /* FrameAnalysisPipeline.swift */; };
+		2469B1764BF5F1B06388F2E8 /* ImageQualityCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2742B2863C1DF4FA78BFE177 /* ImageQualityCalculator.swift */; };
+		FECF0CB52C4015DF6B28664F /* PhotoAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D241A466B7A471BAA72085D /* PhotoAnalyzer.swift */; };
+		12B3024CECA7D51F38CFA159 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9269094A009763492D03C4AE /* AppState.swift */; };
+		ADC66B21586B96432DAADC76 /* LUMIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6D4BD51B2FB73243C36295 /* LUMIApp.swift */; };
+		3704A42067FD61117AE24421 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F405C6CF09B259DACF06EDF7 /* Theme.swift */; };
+		213697D223E7D0A3E35485D3 /* AnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FBCA03A053F843F1C18BCC /* AnalysisModels.swift */; };
+		3949705AF41C07CED20CF5A3 /* PhotoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26774E1A1845BDCFC18F4241 /* PhotoModels.swift */; };
+		C96BF32D77B57191CACF530B /* PoseLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F21BA837215ECE057DEAAF /* PoseLibrary.swift */; };
+		84711660957174A79936259C /* PoseRecommender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E962C38E25D5AAE70120B28 /* PoseRecommender.swift */; };
+		B8169181825245ECAAA0A666 /* PoseScriptWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521404BF34E55687EE0014EB /* PoseScriptWriter.swift */; };
+		535FE8331E58DE8E403A2B8E /* PoseSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E5254799B2B1F8FA41F0B8 /* PoseSuggestion.swift */; };
+		F2FB4861ABDD7A90335D196C /* PoseTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E25463073FFCBF18E9566BE /* PoseTypes.swift */; };
+		0E58B087E9CFCE49BD4CC666 /* VideoInputModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D82CE5A7D291F5C1D2E175 /* VideoInputModels.swift */; };
+		3942B45722EF2869BB7672D3 /* ExifReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC83C6CDAF852FCE8F86E78 /* ExifReader.swift */; };
+		4BF6857B332F7509B4A39B0C /* PhotoLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF8A91D735F0F0EDB2608DE1 /* PhotoLibraryStore.swift */; };
+		AE0AFD7246214EE845D44682 /* BodyPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD13D9021F65EEF90E722B29 /* BodyPose.swift */; };
+		0297F29450AA6D96CDB9DE87 /* PoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5080B3ACE509E197533C3903 /* PoseAnalyzer.swift */; };
+		8477F0C4B2A1A68D30D7B2C8 /* PoseCoachEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E002F609BC88FA8F0394BBE9 /* PoseCoachEngine.swift */; };
+		93B8DA07A4FFE065C52C3AAA /* PoseGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E229B51C61C3495535558BA1 /* PoseGeometry.swift */; };
+		86A0E319C1107CBE84C96918 /* PoseSkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512CC71F42A6F3289167D9DC /* PoseSkeletonView.swift */; };
+		D3A64E9B3A873FD8516FCB3C /* VisionPoseEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504AE92B70C5D2C1BCE6B239 /* VisionPoseEstimator.swift */; };
+		699B8A0DF77712FDAF1CB3ED /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41137CC4A9C43CDDBDC63545 /* AppLog.swift */; };
+		3FF8BA4102A52A5D58A708F8 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481198DE4E190260355D0E9D /* FavoritesStore.swift */; };
+		2C78A245FF37DD6FBBD3295F /* OrientationSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D11DF6858D2D523429CD7A /* OrientationSupport.swift */; };
+		52CD80A94529E6BDB90F6319 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */; };
+		6BA483D014E0A7584F69F5AC /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F52E5AE6C4828C2096DEFB2F /* SettingsStore.swift */; };
+		7CCCE5F9720BE60FDD14DE2F /* BuiltInCameraInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98C375FAA3BABB2115DD7C /* BuiltInCameraInput.swift */; };
+		46B929C11221EE52FB1077D7 /* NetworkVideoInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDFCC7D6943873BD22B7D64 /* NetworkVideoInput.swift */; };
+		C5E4AD1C9F6E9246CD9ECFF4 /* PreviewLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4BA1DC56B4C48876B41115 /* PreviewLayerView.swift */; };
+		8FA25DEA3A0E68360B4C5E3F /* UVCVideoInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B22B1CEBE7B60CF9AF62053 /* UVCVideoInput.swift */; };
+		6743153DF7F062473AF8286B /* VideoInputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B64118A8C72495B7D686EDE7 /* VideoInputManager.swift */; };
+		94E85C6ADEB4B6A45E93A8A3 /* VideoInputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E681F204D8A04ABCC41058 /* VideoInputSource.swift */; };
+		8B1BF52448DD844F6ABD2EE7 /* MonitorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E974D590EAE1A9EBE71426D /* MonitorViewModel.swift */; };
+		A31A05D2A4BA249419EC0CE8 /* PhotoLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412A71F916063262AA3D276E /* PhotoLibraryViewModel.swift */; };
+		4D3643F45B3F56999941465C /* PoseAssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51DB225158195A19184BC211 /* PoseAssistantViewModel.swift */; };
+		FD1EB6FD47FF05C73E9F38A9 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCD4F4E104F7A9A960A44C9 /* Components.swift */; };
+		A2A3D27D842713724B5F096D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAD52EC2D908FEE3F30DDC8 /* HomeView.swift */; };
+		8E3767A977C7D31DEBDEC443 /* LiveMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 677C4D36EC1FC90A44C56BD7 /* LiveMonitorView.swift */; };
+		B7237970B9560A8D1D6139D1 /* LivePoseCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0CA973123FDA5A60B38C99 /* LivePoseCoachView.swift */; };
+		F3AE0C668258D3853F291F81 /* MonitorOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A18090851CBCF67FB7B95541 /* MonitorOverlayView.swift */; };
+		F8403714DD3F1DAD6AE198BF /* MonitorVideoSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF024F7A6F58E71583690E9 /* MonitorVideoSurface.swift */; };
+		14C82E249216F29E21C3C952 /* PhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8CBBDC9AD14E2CD67F8B68 /* PhotoDetailView.swift */; };
+		8B6F9B20CFF9BEFDBB3B291B /* PhotoLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833016EE3C839821D533F323 /* PhotoLibraryView.swift */; };
+		2F802C869C6C161DF9445EC8 /* PoseAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */; };
+		71FA42E01693605C48D20578 /* PoseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D11509A6DA07F077D7A51F /* PoseDetailView.swift */; };
+		0CD14A53D91AC988881966DB /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B1E9597EC47A1914A78E7A /* PrivacyView.swift */; };
+		38CCADD0A1B1B150CD1A1388 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F8572E3EC3D000367D1A68 /* RootView.swift */; };
+		696894C5DB4038AC9B42333D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35D3B524F0C33EB8FD43651 /* SettingsView.swift */; };
+		D790CA11BD23C2C0D8A27E2E /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2602019848AFE3FF64A998E7 /* ToolsView.swift */; };
+		37BBE6F8047A4830EA960FA8 /* BodyPoseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 808A51BC9549BFCA90137B1C /* BodyPoseTests.swift */; };
+		F7045AF13101B5CE32CD0E86 /* CompositionAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0EFADBE65123AF36D1BF2A8 /* CompositionAnalyzerTests.swift */; };
+		75D592A00BA8BD0483C6F0AC /* ExifReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91DA26B93EFDD6D12AADC030 /* ExifReaderTests.swift */; };
+		42F3F0D4A7122292850EDC0E /* ImageQualityCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE8F8CCBA3EDB5F42DF7B72 /* ImageQualityCalculatorTests.swift */; };
+		C08FEF61AD86F62E879935E6 /* PhotoAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9430FC1D31D1A2E20F3132C /* PhotoAnalyzerTests.swift */; };
+		F19FFE3C1941805BE3FBA06A /* PoseAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F093104D1361FACCD5DF34F5 /* PoseAnalyzerTests.swift */; };
+		8E5D2D89834F73AB2B6AAE81 /* PoseCoachEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A202D139CA8421C95BDDCF0A /* PoseCoachEngineTests.swift */; };
+		2F2D7579DBA1F1DD1C846717 /* PoseGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33D5EE5E6A5C0FF00F22E4D /* PoseGeometryTests.swift */; };
+		F914435BEA4E5403CC7EFCAC /* PoseLibraryDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78875A22C62B461F38A8A9C3 /* PoseLibraryDatabaseTests.swift */; };
+		1754F81C2D74717F56B4DFF6 /* PoseRecommenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BEB894B9FCE136860E1A97D /* PoseRecommenderTests.swift */; };
+		98701149A63557EAF9CD3073 /* PoseScriptWriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29E97A3BF8B950B44DFACF6 /* PoseScriptWriterTests.swift */; };
+		1191546DB3F2329F6D36BA42 /* PoseTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B03818E0868FD5EB6EB087E /* PoseTypesTests.swift */; };
+		55490719CAE11A8B3131755C /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E594E3778F8057D60810CC /* TestFixtures.swift */; };
+		6D706CB23BC7D461DD33F333 /* VideoInputModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DFE9883E74864AF3653CA8 /* VideoInputModelsTests.swift */; };
+		4881601484A6E72E7AF3E24C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2579A772CBC555CD40F4237B /* Assets.xcassets */; };
+		87245266BD1FF1AF867FC264 /* pose_library.json in Resources */ = {isa = PBXBuildFile; fileRef = C6C4A15C16BA9B2312E0955E /* pose_library.json */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+			isa = PBXTargetDependency;
+			target = B39883C2DC4B547F827609E7 /* LUMI */;
+			targetProxy = 1E73F7E446C3A6D0DD64CEC9 /* PBXContainerItemProxy */;
+		};
+		1E73F7E446C3A6D0DD64CEC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D314BC15A00E02560008CD5B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B39883C2DC4B547F827609E7;
+			remoteInfo = LUMI;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C3B2956DF7FA90524121F1FD /* LUMI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LUMI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA65FABBBD2230073763CEFF /* LUMITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LUMITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		06A896CC44555639CD8002FC /* CompositionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositionAnalyzer.swift; sourceTree = "<group>"; };
+		B64D06BDB2112841D2B91D3E /* FrameAnalysisPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameAnalysisPipeline.swift; sourceTree = "<group>"; };
+		2742B2863C1DF4FA78BFE177 /* ImageQualityCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageQualityCalculator.swift; sourceTree = "<group>"; };
+		5D241A466B7A471BAA72085D /* PhotoAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAnalyzer.swift; sourceTree = "<group>"; };
+		9269094A009763492D03C4AE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		CA6D4BD51B2FB73243C36295 /* LUMIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LUMIApp.swift; sourceTree = "<group>"; };
+		F405C6CF09B259DACF06EDF7 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		65FBCA03A053F843F1C18BCC /* AnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModels.swift; sourceTree = "<group>"; };
+		26774E1A1845BDCFC18F4241 /* PhotoModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoModels.swift; sourceTree = "<group>"; };
+		92F21BA837215ECE057DEAAF /* PoseLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseLibrary.swift; sourceTree = "<group>"; };
+		9E962C38E25D5AAE70120B28 /* PoseRecommender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseRecommender.swift; sourceTree = "<group>"; };
+		521404BF34E55687EE0014EB /* PoseScriptWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseScriptWriter.swift; sourceTree = "<group>"; };
+		64E5254799B2B1F8FA41F0B8 /* PoseSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseSuggestion.swift; sourceTree = "<group>"; };
+		7E25463073FFCBF18E9566BE /* PoseTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseTypes.swift; sourceTree = "<group>"; };
+		C8D82CE5A7D291F5C1D2E175 /* VideoInputModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputModels.swift; sourceTree = "<group>"; };
+		4FC83C6CDAF852FCE8F86E78 /* ExifReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExifReader.swift; sourceTree = "<group>"; };
+		AF8A91D735F0F0EDB2608DE1 /* PhotoLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryStore.swift; sourceTree = "<group>"; };
+		AD13D9021F65EEF90E722B29 /* BodyPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPose.swift; sourceTree = "<group>"; };
+		5080B3ACE509E197533C3903 /* PoseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAnalyzer.swift; sourceTree = "<group>"; };
+		E002F609BC88FA8F0394BBE9 /* PoseCoachEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseCoachEngine.swift; sourceTree = "<group>"; };
+		E229B51C61C3495535558BA1 /* PoseGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseGeometry.swift; sourceTree = "<group>"; };
+		512CC71F42A6F3289167D9DC /* PoseSkeletonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseSkeletonView.swift; sourceTree = "<group>"; };
+		504AE92B70C5D2C1BCE6B239 /* VisionPoseEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionPoseEstimator.swift; sourceTree = "<group>"; };
+		41137CC4A9C43CDDBDC63545 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		481198DE4E190260355D0E9D /* FavoritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesStore.swift; sourceTree = "<group>"; };
+		44D11DF6858D2D523429CD7A /* OrientationSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrientationSupport.swift; sourceTree = "<group>"; };
+		2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStore.swift; sourceTree = "<group>"; };
+		F52E5AE6C4828C2096DEFB2F /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		DD98C375FAA3BABB2115DD7C /* BuiltInCameraInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltInCameraInput.swift; sourceTree = "<group>"; };
+		2BDFCC7D6943873BD22B7D64 /* NetworkVideoInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkVideoInput.swift; sourceTree = "<group>"; };
+		EE4BA1DC56B4C48876B41115 /* PreviewLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLayerView.swift; sourceTree = "<group>"; };
+		2B22B1CEBE7B60CF9AF62053 /* UVCVideoInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UVCVideoInput.swift; sourceTree = "<group>"; };
+		B64118A8C72495B7D686EDE7 /* VideoInputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputManager.swift; sourceTree = "<group>"; };
+		E0E681F204D8A04ABCC41058 /* VideoInputSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputSource.swift; sourceTree = "<group>"; };
+		5E974D590EAE1A9EBE71426D /* MonitorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorViewModel.swift; sourceTree = "<group>"; };
+		412A71F916063262AA3D276E /* PhotoLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryViewModel.swift; sourceTree = "<group>"; };
+		51DB225158195A19184BC211 /* PoseAssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAssistantViewModel.swift; sourceTree = "<group>"; };
+		2CCD4F4E104F7A9A960A44C9 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		2BAD52EC2D908FEE3F30DDC8 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		677C4D36EC1FC90A44C56BD7 /* LiveMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveMonitorView.swift; sourceTree = "<group>"; };
+		0E0CA973123FDA5A60B38C99 /* LivePoseCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePoseCoachView.swift; sourceTree = "<group>"; };
+		A18090851CBCF67FB7B95541 /* MonitorOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorOverlayView.swift; sourceTree = "<group>"; };
+		1AF024F7A6F58E71583690E9 /* MonitorVideoSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitorVideoSurface.swift; sourceTree = "<group>"; };
+		8E8CBBDC9AD14E2CD67F8B68 /* PhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDetailView.swift; sourceTree = "<group>"; };
+		833016EE3C839821D533F323 /* PhotoLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryView.swift; sourceTree = "<group>"; };
+		C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAssistantView.swift; sourceTree = "<group>"; };
+		53D11509A6DA07F077D7A51F /* PoseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseDetailView.swift; sourceTree = "<group>"; };
+		67B1E9597EC47A1914A78E7A /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
+		17F8572E3EC3D000367D1A68 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		F35D3B524F0C33EB8FD43651 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		2602019848AFE3FF64A998E7 /* ToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsView.swift; sourceTree = "<group>"; };
+		808A51BC9549BFCA90137B1C /* BodyPoseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseTests.swift; sourceTree = "<group>"; };
+		C0EFADBE65123AF36D1BF2A8 /* CompositionAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositionAnalyzerTests.swift; sourceTree = "<group>"; };
+		91DA26B93EFDD6D12AADC030 /* ExifReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExifReaderTests.swift; sourceTree = "<group>"; };
+		CDE8F8CCBA3EDB5F42DF7B72 /* ImageQualityCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageQualityCalculatorTests.swift; sourceTree = "<group>"; };
+		F9430FC1D31D1A2E20F3132C /* PhotoAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAnalyzerTests.swift; sourceTree = "<group>"; };
+		F093104D1361FACCD5DF34F5 /* PoseAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseAnalyzerTests.swift; sourceTree = "<group>"; };
+		A202D139CA8421C95BDDCF0A /* PoseCoachEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseCoachEngineTests.swift; sourceTree = "<group>"; };
+		C33D5EE5E6A5C0FF00F22E4D /* PoseGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseGeometryTests.swift; sourceTree = "<group>"; };
+		78875A22C62B461F38A8A9C3 /* PoseLibraryDatabaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseLibraryDatabaseTests.swift; sourceTree = "<group>"; };
+		6BEB894B9FCE136860E1A97D /* PoseRecommenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseRecommenderTests.swift; sourceTree = "<group>"; };
+		D29E97A3BF8B950B44DFACF6 /* PoseScriptWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseScriptWriterTests.swift; sourceTree = "<group>"; };
+		0B03818E0868FD5EB6EB087E /* PoseTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseTypesTests.swift; sourceTree = "<group>"; };
+		28E594E3778F8057D60810CC /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
+		49DFE9883E74864AF3653CA8 /* VideoInputModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputModelsTests.swift; sourceTree = "<group>"; };
+		2579A772CBC555CD40F4237B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C6C4A15C16BA9B2312E0955E /* pose_library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pose_library.json; sourceTree = "<group>"; };
+		E5AF9ABE5AE2B92E14A6375D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		72D2A21FD7EB8CAC225CA019 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		62EF3C5E4DFA08FB68A7136E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		26097FC29AFED23C0DC9622B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C3B2956DF7FA90524121F1FD /* LUMI.app */,
+				FA65FABBBD2230073763CEFF /* LUMITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8FE5357FFC1989070037A855 /* Main Group */ = {
+			isa = PBXGroup;
+			children = (
+				9AFE03FF365B97896F0B1D15 /* LUMI */,
+				DCE55295FF73EE8C3AF4BFBB /* LUMITests */,
+				26097FC29AFED23C0DC9622B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7F17C7F9310681D21908B10D /*  */ = {
+			isa = PBXGroup;
+			children = (
+				9AFE03FF365B97896F0B1D15 /* LUMI */,
+				DCE55295FF73EE8C3AF4BFBB /* LUMITests */,
+			);
+			path = ;
+			sourceTree = "<group>";
+		};
+		9AFE03FF365B97896F0B1D15 /* LUMI */ = {
+			isa = PBXGroup;
+			children = (
+				2082C4F8CA1135ECF141BB9E /* AIAnalysis */,
+				04ABB52BEC86DB47EE2D26D0 /* App */,
+				68ABDE8201ED2E4B1C42CE3D /* Models */,
+				0BE66388F6CBE42E06F9708C /* PhotoLibrary */,
+				6F8C7ABDE83EA5594B64763C /* PoseEstimation */,
+				F0BF77BFDED4935C65C41EBC /* Resources */,
+				5CFC45A75A16B86ECA9BC4D8 /* Services */,
+				8FC15046E0EE06C74E9D25D7 /* VideoInput */,
+				C9AC93D22C962F5BCAE51A89 /* ViewModels */,
+				B9305CDC7818537408811EF3 /* Views */,
+			);
+			path = LUMI;
+			sourceTree = "<group>";
+		};
+		2082C4F8CA1135ECF141BB9E /* AIAnalysis */ = {
+			isa = PBXGroup;
+			children = (
+				06A896CC44555639CD8002FC /* CompositionAnalyzer.swift */,
+				B64D06BDB2112841D2B91D3E /* FrameAnalysisPipeline.swift */,
+				2742B2863C1DF4FA78BFE177 /* ImageQualityCalculator.swift */,
+				5D241A466B7A471BAA72085D /* PhotoAnalyzer.swift */,
+			);
+			path = AIAnalysis;
+			sourceTree = "<group>";
+		};
+		04ABB52BEC86DB47EE2D26D0 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				9269094A009763492D03C4AE /* AppState.swift */,
+				CA6D4BD51B2FB73243C36295 /* LUMIApp.swift */,
+				F405C6CF09B259DACF06EDF7 /* Theme.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		68ABDE8201ED2E4B1C42CE3D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				65FBCA03A053F843F1C18BCC /* AnalysisModels.swift */,
+				26774E1A1845BDCFC18F4241 /* PhotoModels.swift */,
+				92F21BA837215ECE057DEAAF /* PoseLibrary.swift */,
+				9E962C38E25D5AAE70120B28 /* PoseRecommender.swift */,
+				521404BF34E55687EE0014EB /* PoseScriptWriter.swift */,
+				64E5254799B2B1F8FA41F0B8 /* PoseSuggestion.swift */,
+				7E25463073FFCBF18E9566BE /* PoseTypes.swift */,
+				C8D82CE5A7D291F5C1D2E175 /* VideoInputModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		0BE66388F6CBE42E06F9708C /* PhotoLibrary */ = {
+			isa = PBXGroup;
+			children = (
+				4FC83C6CDAF852FCE8F86E78 /* ExifReader.swift */,
+				AF8A91D735F0F0EDB2608DE1 /* PhotoLibraryStore.swift */,
+			);
+			path = PhotoLibrary;
+			sourceTree = "<group>";
+		};
+		6F8C7ABDE83EA5594B64763C /* PoseEstimation */ = {
+			isa = PBXGroup;
+			children = (
+				AD13D9021F65EEF90E722B29 /* BodyPose.swift */,
+				5080B3ACE509E197533C3903 /* PoseAnalyzer.swift */,
+				E002F609BC88FA8F0394BBE9 /* PoseCoachEngine.swift */,
+				E229B51C61C3495535558BA1 /* PoseGeometry.swift */,
+				512CC71F42A6F3289167D9DC /* PoseSkeletonView.swift */,
+				504AE92B70C5D2C1BCE6B239 /* VisionPoseEstimator.swift */,
+			);
+			path = PoseEstimation;
+			sourceTree = "<group>";
+		};
+		F0BF77BFDED4935C65C41EBC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2579A772CBC555CD40F4237B /* Assets.xcassets */,
+				C6C4A15C16BA9B2312E0955E /* pose_library.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5CFC45A75A16B86ECA9BC4D8 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				41137CC4A9C43CDDBDC63545 /* AppLog.swift */,
+				481198DE4E190260355D0E9D /* FavoritesStore.swift */,
+				44D11DF6858D2D523429CD7A /* OrientationSupport.swift */,
+				2FE3012E00B3BE65F6FC6FC8 /* PresetStore.swift */,
+				F52E5AE6C4828C2096DEFB2F /* SettingsStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		8FC15046E0EE06C74E9D25D7 /* VideoInput */ = {
+			isa = PBXGroup;
+			children = (
+				DD98C375FAA3BABB2115DD7C /* BuiltInCameraInput.swift */,
+				2BDFCC7D6943873BD22B7D64 /* NetworkVideoInput.swift */,
+				EE4BA1DC56B4C48876B41115 /* PreviewLayerView.swift */,
+				2B22B1CEBE7B60CF9AF62053 /* UVCVideoInput.swift */,
+				B64118A8C72495B7D686EDE7 /* VideoInputManager.swift */,
+				E0E681F204D8A04ABCC41058 /* VideoInputSource.swift */,
+			);
+			path = VideoInput;
+			sourceTree = "<group>";
+		};
+		C9AC93D22C962F5BCAE51A89 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				5E974D590EAE1A9EBE71426D /* MonitorViewModel.swift */,
+				412A71F916063262AA3D276E /* PhotoLibraryViewModel.swift */,
+				51DB225158195A19184BC211 /* PoseAssistantViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		B9305CDC7818537408811EF3 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2CCD4F4E104F7A9A960A44C9 /* Components.swift */,
+				2BAD52EC2D908FEE3F30DDC8 /* HomeView.swift */,
+				677C4D36EC1FC90A44C56BD7 /* LiveMonitorView.swift */,
+				0E0CA973123FDA5A60B38C99 /* LivePoseCoachView.swift */,
+				A18090851CBCF67FB7B95541 /* MonitorOverlayView.swift */,
+				1AF024F7A6F58E71583690E9 /* MonitorVideoSurface.swift */,
+				8E8CBBDC9AD14E2CD67F8B68 /* PhotoDetailView.swift */,
+				833016EE3C839821D533F323 /* PhotoLibraryView.swift */,
+				C3038D4EA6BAF8FFF5B327D1 /* PoseAssistantView.swift */,
+				53D11509A6DA07F077D7A51F /* PoseDetailView.swift */,
+				67B1E9597EC47A1914A78E7A /* PrivacyView.swift */,
+				17F8572E3EC3D000367D1A68 /* RootView.swift */,
+				F35D3B524F0C33EB8FD43651 /* SettingsView.swift */,
+				2602019848AFE3FF64A998E7 /* ToolsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		DCE55295FF73EE8C3AF4BFBB /* LUMITests */ = {
+			isa = PBXGroup;
+			children = (
+				808A51BC9549BFCA90137B1C /* BodyPoseTests.swift */,
+				C0EFADBE65123AF36D1BF2A8 /* CompositionAnalyzerTests.swift */,
+				91DA26B93EFDD6D12AADC030 /* ExifReaderTests.swift */,
+				CDE8F8CCBA3EDB5F42DF7B72 /* ImageQualityCalculatorTests.swift */,
+				F9430FC1D31D1A2E20F3132C /* PhotoAnalyzerTests.swift */,
+				F093104D1361FACCD5DF34F5 /* PoseAnalyzerTests.swift */,
+				A202D139CA8421C95BDDCF0A /* PoseCoachEngineTests.swift */,
+				C33D5EE5E6A5C0FF00F22E4D /* PoseGeometryTests.swift */,
+				78875A22C62B461F38A8A9C3 /* PoseLibraryDatabaseTests.swift */,
+				6BEB894B9FCE136860E1A97D /* PoseRecommenderTests.swift */,
+				D29E97A3BF8B950B44DFACF6 /* PoseScriptWriterTests.swift */,
+				0B03818E0868FD5EB6EB087E /* PoseTypesTests.swift */,
+				28E594E3778F8057D60810CC /* TestFixtures.swift */,
+				49DFE9883E74864AF3653CA8 /* VideoInputModelsTests.swift */,
+			);
+			path = LUMITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B39883C2DC4B547F827609E7 /* LUMI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAA197DDAFEC82125313DDBF /* Build configuration list for PBXNativeTarget "LUMI" */;
+			buildPhases = (
+				CE83CB21AF99EE142AFF6174 /* Sources */,
+				72D2A21FD7EB8CAC225CA019 /* Frameworks */,
+				36BD731839E03830A4E49559 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LUMI;
+			productName = LUMI;
+			productReference = C3B2956DF7FA90524121F1FD /* LUMI.app */;
+			productType = "com.apple.product-type.application";
+		};
+		25243BCBD720CA69D2CF73FC /* LUMITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7751F302462DAD460D2A8A25 /* Build configuration list for PBXNativeTarget "LUMITests" */;
+			buildPhases = (
+				6A0DAE294A5218629F4AF7C4 /* Sources */,
+				62EF3C5E4DFA08FB68A7136E /* Frameworks */,
+				33094DEE66798BC76B90158D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				67203C20CE4BBE76356D621A /* PBXTargetDependency */,
+			);
+			name = LUMITests;
+			productName = LUMITests;
+			productReference = FA65FABBBD2230073763CEFF /* LUMITests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D314BC15A00E02560008CD5B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					B39883C2DC4B547F827609E7 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					25243BCBD720CA69D2CF73FC = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = B39883C2DC4B547F827609E7;
+					};
+				};
+			};
+			buildConfigurationList = F4BD7B74678BAE9678583505 /* Build configuration list for PBXProject "LUMI" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh_CN;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				zh_CN,
+				en,
+				Base,
+			);
+			mainGroup = 8FE5357FFC1989070037A855;
+			productRefGroup = 26097FC29AFED23C0DC9622B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B39883C2DC4B547F827609E7 /* LUMI */,
+				25243BCBD720CA69D2CF73FC /* LUMITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		36BD731839E03830A4E49559 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4881601484A6E72E7AF3E24C /* Assets.xcassets in Resources */,
+				87245266BD1FF1AF867FC264 /* pose_library.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33094DEE66798BC76B90158D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CE83CB21AF99EE142AFF6174 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF3AE2904FE6FAA51E2160F8 /* CompositionAnalyzer.swift in Sources */,
+				7ED22388466843DD4A81D54C /* FrameAnalysisPipeline.swift in Sources */,
+				2469B1764BF5F1B06388F2E8 /* ImageQualityCalculator.swift in Sources */,
+				FECF0CB52C4015DF6B28664F /* PhotoAnalyzer.swift in Sources */,
+				12B3024CECA7D51F38CFA159 /* AppState.swift in Sources */,
+				ADC66B21586B96432DAADC76 /* LUMIApp.swift in Sources */,
+				3704A42067FD61117AE24421 /* Theme.swift in Sources */,
+				213697D223E7D0A3E35485D3 /* AnalysisModels.swift in Sources */,
+				3949705AF41C07CED20CF5A3 /* PhotoModels.swift in Sources */,
+				C96BF32D77B57191CACF530B /* PoseLibrary.swift in Sources */,
+				84711660957174A79936259C /* PoseRecommender.swift in Sources */,
+				B8169181825245ECAAA0A666 /* PoseScriptWriter.swift in Sources */,
+				535FE8331E58DE8E403A2B8E /* PoseSuggestion.swift in Sources */,
+				F2FB4861ABDD7A90335D196C /* PoseTypes.swift in Sources */,
+				0E58B087E9CFCE49BD4CC666 /* VideoInputModels.swift in Sources */,
+				3942B45722EF2869BB7672D3 /* ExifReader.swift in Sources */,
+				4BF6857B332F7509B4A39B0C /* PhotoLibraryStore.swift in Sources */,
+				AE0AFD7246214EE845D44682 /* BodyPose.swift in Sources */,
+				0297F29450AA6D96CDB9DE87 /* PoseAnalyzer.swift in Sources */,
+				8477F0C4B2A1A68D30D7B2C8 /* PoseCoachEngine.swift in Sources */,
+				93B8DA07A4FFE065C52C3AAA /* PoseGeometry.swift in Sources */,
+				86A0E319C1107CBE84C96918 /* PoseSkeletonView.swift in Sources */,
+				D3A64E9B3A873FD8516FCB3C /* VisionPoseEstimator.swift in Sources */,
+				699B8A0DF77712FDAF1CB3ED /* AppLog.swift in Sources */,
+				3FF8BA4102A52A5D58A708F8 /* FavoritesStore.swift in Sources */,
+				2C78A245FF37DD6FBBD3295F /* OrientationSupport.swift in Sources */,
+				52CD80A94529E6BDB90F6319 /* PresetStore.swift in Sources */,
+				6BA483D014E0A7584F69F5AC /* SettingsStore.swift in Sources */,
+				7CCCE5F9720BE60FDD14DE2F /* BuiltInCameraInput.swift in Sources */,
+				46B929C11221EE52FB1077D7 /* NetworkVideoInput.swift in Sources */,
+				C5E4AD1C9F6E9246CD9ECFF4 /* PreviewLayerView.swift in Sources */,
+				8FA25DEA3A0E68360B4C5E3F /* UVCVideoInput.swift in Sources */,
+				6743153DF7F062473AF8286B /* VideoInputManager.swift in Sources */,
+				94E85C6ADEB4B6A45E93A8A3 /* VideoInputSource.swift in Sources */,
+				8B1BF52448DD844F6ABD2EE7 /* MonitorViewModel.swift in Sources */,
+				A31A05D2A4BA249419EC0CE8 /* PhotoLibraryViewModel.swift in Sources */,
+				4D3643F45B3F56999941465C /* PoseAssistantViewModel.swift in Sources */,
+				FD1EB6FD47FF05C73E9F38A9 /* Components.swift in Sources */,
+				A2A3D27D842713724B5F096D /* HomeView.swift in Sources */,
+				8E3767A977C7D31DEBDEC443 /* LiveMonitorView.swift in Sources */,
+				B7237970B9560A8D1D6139D1 /* LivePoseCoachView.swift in Sources */,
+				F3AE0C668258D3853F291F81 /* MonitorOverlayView.swift in Sources */,
+				F8403714DD3F1DAD6AE198BF /* MonitorVideoSurface.swift in Sources */,
+				14C82E249216F29E21C3C952 /* PhotoDetailView.swift in Sources */,
+				8B6F9B20CFF9BEFDBB3B291B /* PhotoLibraryView.swift in Sources */,
+				2F802C869C6C161DF9445EC8 /* PoseAssistantView.swift in Sources */,
+				71FA42E01693605C48D20578 /* PoseDetailView.swift in Sources */,
+				0CD14A53D91AC988881966DB /* PrivacyView.swift in Sources */,
+				38CCADD0A1B1B150CD1A1388 /* RootView.swift in Sources */,
+				696894C5DB4038AC9B42333D /* SettingsView.swift in Sources */,
+				D790CA11BD23C2C0D8A27E2E /* ToolsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6A0DAE294A5218629F4AF7C4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37BBE6F8047A4830EA960FA8 /* BodyPoseTests.swift in Sources */,
+				F7045AF13101B5CE32CD0E86 /* CompositionAnalyzerTests.swift in Sources */,
+				75D592A00BA8BD0483C6F0AC /* ExifReaderTests.swift in Sources */,
+				42F3F0D4A7122292850EDC0E /* ImageQualityCalculatorTests.swift in Sources */,
+				C08FEF61AD86F62E879935E6 /* PhotoAnalyzerTests.swift in Sources */,
+				F19FFE3C1941805BE3FBA06A /* PoseAnalyzerTests.swift in Sources */,
+				8E5D2D89834F73AB2B6AAE81 /* PoseCoachEngineTests.swift in Sources */,
+				2F2D7579DBA1F1DD1C846717 /* PoseGeometryTests.swift in Sources */,
+				F914435BEA4E5403CC7EFCAC /* PoseLibraryDatabaseTests.swift in Sources */,
+				1754F81C2D74717F56B4DFF6 /* PoseRecommenderTests.swift in Sources */,
+				98701149A63557EAF9CD3073 /* PoseScriptWriterTests.swift in Sources */,
+				1191546DB3F2329F6D36BA42 /* PoseTypesTests.swift in Sources */,
+				55490719CAE11A8B3131755C /* TestFixtures.swift in Sources */,
+				6D706CB23BC7D461DD33F333 /* VideoInputModelsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		67203C20CE4BBE76356D621A /* PBXTargetDependency */ = {
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4C7FACFEB52762F254AA539A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ANALYZER_NONNULL = YES;
+			CLANG_ENABLE_MODULES = YES;
+			CLANG_ENABLE_OBJC_ARC = YES;
+			CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+			CLANG_WARN_BOOL_CONVERSION = YES;
+			CLANG_WARN_COMMA = YES;
+			CLANG_WARN_CONSTANT_CONVERSION = YES;
+			CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+			CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES;
+			CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+			CLANG_WARN_EMPTY_BODY = YES;
+			CLANG_WARN_ENUM_CONVERSION = YES;
+			CLANG_WARN_INFINITE_RECURSION = YES;
+			CLANG_WARN_INT_CONVERSION = YES;
+			CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+			CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+			CLANG_WARN_OBJC_ROOT_CLASS = YES;
+			CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+			CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+			CLANG_WARN_STRICT_PROTOTYPES = YES;
+			CLANG_WARN_SUSPICIOUS_MOVE = YES;
+			CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+			CLANG_WARN_UNREACHABLE_CODE = YES;
+			CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+			COPY_PHASE_STRIP = NO;
+			ENABLE_STRICT_OBJC_MSGSEND = YES;
+			ENABLE_USER_SCRIPT_SANDBOXING = NO;
+			GCC_C_LANGUAGE_STANDARD = gnu17;
+			GCC_NO_COMMON_BLOCKS = YES;
+			GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+			GCC_WARN_ABOUT_RETURN_TYPE = YES;
+			GCC_WARN_UNDECLARED_SELECTOR = YES;
+			GCC_WARN_UNINITIALIZED_AUTOS = YES;
+			GCC_WARN_UNUSED_FUNCTION = YES;
+			GCC_WARN_UNUSED_VARIABLE = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+			MTL_FAST_MATH = YES;
+			SDKROOT = iphoneos;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2";
+			DEBUG_INFORMATION_FORMAT = dwarf;
+			ENABLE_TESTABILITY = YES;
+			GCC_DYNAMIC_NO_PIC = NO;
+			GCC_OPTIMIZATION_LEVEL = 0;
+			GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+			MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+			ONLY_ACTIVE_ARCH = YES;
+			SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+			SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AB9B8B2DF8FA74F338A4F55E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ANALYZER_NONNULL = YES;
+			CLANG_ENABLE_MODULES = YES;
+			CLANG_ENABLE_OBJC_ARC = YES;
+			CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+			CLANG_WARN_BOOL_CONVERSION = YES;
+			CLANG_WARN_COMMA = YES;
+			CLANG_WARN_CONSTANT_CONVERSION = YES;
+			CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+			CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES;
+			CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+			CLANG_WARN_EMPTY_BODY = YES;
+			CLANG_WARN_ENUM_CONVERSION = YES;
+			CLANG_WARN_INFINITE_RECURSION = YES;
+			CLANG_WARN_INT_CONVERSION = YES;
+			CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+			CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+			CLANG_WARN_OBJC_ROOT_CLASS = YES;
+			CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+			CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+			CLANG_WARN_STRICT_PROTOTYPES = YES;
+			CLANG_WARN_SUSPICIOUS_MOVE = YES;
+			CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+			CLANG_WARN_UNREACHABLE_CODE = YES;
+			CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+			COPY_PHASE_STRIP = NO;
+			ENABLE_STRICT_OBJC_MSGSEND = YES;
+			ENABLE_USER_SCRIPT_SANDBOXING = NO;
+			GCC_C_LANGUAGE_STANDARD = gnu17;
+			GCC_NO_COMMON_BLOCKS = YES;
+			GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+			GCC_WARN_ABOUT_RETURN_TYPE = YES;
+			GCC_WARN_UNDECLARED_SELECTOR = YES;
+			GCC_WARN_UNINITIALIZED_AUTOS = YES;
+			GCC_WARN_UNUSED_FUNCTION = YES;
+			GCC_WARN_UNUSED_VARIABLE = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+			MTL_FAST_MATH = YES;
+			SDKROOT = iphoneos;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2";
+			DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			ENABLE_NS_ASSERTIONS = NO;
+			MTL_ENABLE_DEBUG_INFO = NO;
+			SWIFT_COMPILATION_MODE = wholemodule;
+			SWIFT_OPTIMIZATION_LEVEL = "-O";
+			VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3DC6866F98DF3DA9460565D5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = NO;
+			INFOPLIST_FILE = LUMI/Resources/Info.plist;
+			LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+			MARKETING_VERSION = 1.0.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.lumi.aicamera;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9B7D9F1CF38CFF39977E689D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = NO;
+			INFOPLIST_FILE = LUMI/Resources/Info.plist;
+			LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+			MARKETING_VERSION = 1.0.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.lumi.aicamera;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F1116709F67A53197E201276 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = YES;
+			MARKETING_VERSION = 1.0.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.lumi.aicamera.tests;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SWIFT_EMIT_LOC_STRINGS = NO;
+			TARGETED_DEVICE_FAMILY = "1,2";
+			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LUMI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LUMI";
+			BUNDLE_LOADER = "$(TEST_HOST)";
+			};
+			name = Debug;
+		};
+		5E1E9F4E3AD982D2C825C1D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = YES;
+			MARKETING_VERSION = 1.0.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.lumi.aicamera.tests;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SWIFT_EMIT_LOC_STRINGS = NO;
+			TARGETED_DEVICE_FAMILY = "1,2";
+			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LUMI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LUMI";
+			BUNDLE_LOADER = "$(TEST_HOST)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F4BD7B74678BAE9678583505 /* Build configuration list for PBXProject "LUMI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C7FACFEB52762F254AA539A /* Debug */,
+				AB9B8B2DF8FA74F338A4F55E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAA197DDAFEC82125313DDBF /* Build configuration list for PBXNativeTarget "LUMI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3DC6866F98DF3DA9460565D5 /* Debug */,
+				9B7D9F1CF38CFF39977E689D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7751F302462DAD460D2A8A25 /* Build configuration list for PBXNativeTarget "LUMITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1116709F67A53197E201276 /* Debug */,
+				5E1E9F4E3AD982D2C825C1D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = D314BC15A00E02560008CD5B /* Project object */;
+}

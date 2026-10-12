@@ -1,0 +1,14 @@
+# 统一行尾为 LF，保证 Windows 本地与 macOS CI 看到完全一致的源码。
+# pbxproj / Swift / YAML 对行尾敏感度不一，与其赌各平台默认值，不如显式钉死。
+
+* text=auto eol=lf
+
+# 真正的二进制（目前项目里没有，留着防误判）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.icns binary
+*.ipa binary
+*.zip binary
+*.psd binary
+*.xcf binary
