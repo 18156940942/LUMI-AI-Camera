@@ -77,10 +77,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-			isa = PBXTargetDependency;
-			target = B39883C2DC4B547F827609E7 /* LUMI */;
-			targetProxy = 1E73F7E446C3A6D0DD64CEC9 /* PBXContainerItemProxy */;
-		};
 		1E73F7E446C3A6D0DD64CEC9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D314BC15A00E02560008CD5B /* Project object */;
@@ -549,6 +545,10 @@
 
 /* Begin PBXTargetDependency section */
 		67203C20CE4BBE76356D621A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B39883C2DC4B547F827609E7 /* LUMI */;
+			targetProxy = 1E73F7E446C3A6D0DD64CEC9 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
