@@ -110,6 +110,32 @@ jobs:
               --path build/TestResults.xcresult || true
           fi
 
+      # 把失败详情直接写进构建摘要：日志被 tail 截断时，不必下载 artifact 才能看到
+      # 到底哪条断言挂了（这个步骤是排查过一轮 CI 之后加的）
+      - name: 失败详情写入构建摘要
+        if: failure()
+        run: |
+          {
+            echo "## 构建失败详情"
+            echo ""
+            echo "### 编译错误（去重）"
+            echo '```'
+            grep -oE '[A-Za-z0-9_]+\.swift:[0-9]+:[0-9]+: error: .*' build/test.log 2>/dev/null \
+              | sort -u | head -60 || echo "（无编译错误）"
+            echo '```'
+            echo ""
+            echo "### 测试失败（去重）"
+            echo '```'
+            grep -E "error: -\[LUMITests" build/test.log 2>/dev/null \
+              | sort -u | head -60 || echo "（无测试失败）"
+            echo '```'
+            echo ""
+            echo "### 失败命令"
+            echo '```'
+            grep -A 6 "The following build commands failed" build/test.log 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # -----------------------------------------------------------------------
       # Archive（关闭签名）
       # -----------------------------------------------------------------------
