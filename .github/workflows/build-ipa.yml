@@ -88,6 +88,7 @@ jobs:
       - name: 运行单元测试
         run: |
           set -o pipefail
+          mkdir -p build
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -115,6 +116,7 @@ jobs:
       - name: 归档（未签名）
         run: |
           set -o pipefail
+          mkdir -p build
           xcodebuild archive \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
