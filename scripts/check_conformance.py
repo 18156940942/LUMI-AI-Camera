@@ -60,12 +60,27 @@ DECL_RE = re.compile(
 )
 
 # 存储属性签名：`var name: Type` 或 `var name: Type = default`。
-# 刻意排除含 `{` 的行 —— 那是计算属性或闭包初始化，不是存储属性。
-# 没有类型标注的属性（`var showThirds = true`）也不需要检查（Bool 必然可哈希）。
+# 允许 @Published 等属性包装器与访问修饰符前缀。
+# 注意：调用前会先把声明行末尾的 `{`（属性观察器 / 计算属性）剥掉，
+# 并拒绝任何仍含 `{` 的行（闭包初始化等无法静态判断）。
 PROP_RE = re.compile(
-    r"^[ \t]*(?:(?:public|internal|private|fileprivate|package|open)\s+)?"
-    r"(?:var|let)\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([^={]+?)\s*(?:=\s*[^{]*)?$"
+    r"^[ \t]*(?:@[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s+)*"
+    r"(?:(?:public|internal|private|fileprivate|package|open)\s+)?"
+    r"(?:var|let)\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([^={]+?)\s*(?:=(.*))?$"
 )
+
+INIT_RE = re.compile(
+    r"^[ \t]*(?:@[A-Za-z_][A-Za-z0-9_]*\s+)*"
+    r"(?:(?:public|internal|private|fileprivate|package|open)\s+)*"
+    r"(?:convenience\s+|required\s+|override\s+)*init\s*[(!]"
+)
+
+STRING_RE = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def strip_string_literals(line: str) -> str:
+    """把字符串字面量替换成空串，避免其中的大括号干扰计数。"""
+    return STRING_RE.sub('""', line)
 
 
 def indent_width(line: str) -> int:
@@ -100,13 +115,114 @@ def own_properties(lines: list[str], decl_index: int, decl_indent: int) -> list[
     return props
 
 
+def stored_properties(
+    lines: list[str], decl_index: int, decl_indent: int
+) -> list[tuple[str, str, bool]]:
+    """取存储属性，附「是否有默认值」，用于初始化完整性检查。
+
+    与 `own_properties` 的区别：
+    - 支持 `@Published` 等属性包装器
+    - 区分「带观察器的存储属性」和「计算属性」：声明行以 `{` 结尾时，看块里
+      有没有 didSet / willSet —— 有则是存储属性，没有则按计算属性跳过
+    """
+    out: list[tuple[str, str, bool]] = []
+    index = decl_index + 1
+    while index < len(lines):
+        line = lines[index]
+        if not line.strip():
+            index += 1
+            continue
+        width = indent_width(line)
+        if width <= decl_indent:
+            break
+        if width != decl_indent + 4:
+            index += 1
+            continue
+
+        candidate = line.rstrip()
+        opens_block = candidate.endswith("{")
+        if opens_block:
+            candidate = candidate[:-1].rstrip()
+        if "{" in candidate or "}" in candidate:
+            # 闭包初始化等无法静态判断，跳过
+            index += 1
+            continue
+
+        match = PROP_RE.match(candidate)
+        if not match:
+            index += 1
+            continue
+
+        name = match.group(1)
+        type_text = match.group(2).strip()
+        has_default = match.group(3) is not None
+
+        if opens_block:
+            probe = index + 1
+            is_stored = False
+            while probe < len(lines):
+                body_line = lines[probe]
+                if not body_line.strip():
+                    probe += 1
+                    continue
+                if indent_width(body_line) <= decl_indent + 4:
+                    break
+                if "didSet" in body_line or "willSet" in body_line:
+                    is_stored = True
+                    break
+                probe += 1
+            if not is_stored:
+                index += 1
+                continue
+
+        out.append((name, type_text, has_default))
+        index += 1
+    return out
+
+
+def init_bodies(lines: list[str], decl_index: int, decl_indent: int) -> list[str]:
+    """取该类型自身层级上所有 `init` 的完整 body 文本（用大括号配对界定）。"""
+    bodies: list[str] = []
+    index = decl_index + 1
+    while index < len(lines):
+        line = lines[index]
+        if not line.strip():
+            index += 1
+            continue
+        width = indent_width(line)
+        if width <= decl_indent:
+            break
+        if width == decl_indent + 4 and INIT_RE.match(line):
+            collected: list[str] = []
+            depth = 0
+            started = False
+            cursor = index
+            while cursor < len(lines):
+                current = strip_string_literals(lines[cursor])
+                depth += current.count("{") - current.count("}")
+                if depth > 0:
+                    started = True
+                collected.append(lines[cursor])
+                if started and depth <= 0:
+                    break
+                cursor += 1
+            bodies.append("\n".join(collected))
+            index = cursor + 1
+            continue
+        index += 1
+    return bodies
+
+
 def collect(
     paths: list[Path],
-) -> tuple[dict[str, str], dict[str, list[tuple[str, str]]], dict[str, str]]:
-    """返回 (类型名 -> 声明的协议串, 类型名 -> [(属性名, 类型串)], 类型名 -> 种类)。"""
+) -> tuple[dict[str, str], dict[str, list[tuple[str, str]]], dict[str, str],
+           dict[str, list[tuple[str, str, bool]]], dict[str, list[str]]]:
+    """汇总所有类型的协议、属性、初始化信息。"""
     protocols: dict[str, str] = {}
     properties: dict[str, list[tuple[str, str]]] = {}
     kinds: dict[str, str] = {}
+    stored: dict[str, list[tuple[str, str, bool]]] = {}
+    inits: dict[str, list[str]] = {}
 
     for path in paths:
         try:
@@ -119,11 +235,52 @@ def collect(
             if not match:
                 continue
             name = match.group("name")
+            indent = indent_width(line)
             protocols[name] = match.group("rest") or ""
             kinds[name] = match.group("kind")
-            properties[name] = own_properties(lines, index, indent_width(line))
+            properties[name] = own_properties(lines, index, indent)
+            stored[name] = stored_properties(lines, index, indent)
+            inits[name] = init_bodies(lines, index, indent)
 
-    return protocols, properties, kinds
+    return protocols, properties, kinds, stored, inits
+
+
+ASSIGN_RE = re.compile(r"(?:self\.)?([A-Za-z_][A-Za-z0-9_]*)\s*=(?!=)")
+
+
+def check_initialization(
+    stored: dict[str, list[tuple[str, str, bool]]], inits: dict[str, list[str]]
+) -> list[str]:
+    """检查显式写了 init 的类型是否初始化了全部无默认值的存储属性。
+
+    Swift 的规则：类的指定初始化器返回前，每个没有默认值的存储属性都必须被赋值。
+    漏掉一个就是编译错误 `return from initializer without initializing all stored
+    properties` —— SettingsStore 就是这样漏了 showsFrameStats。
+
+    只检查**自己写了 init** 的类型（依赖成员逐一初始化的 struct 不受影响）。
+    """
+    problems: list[str] = []
+    for name, props in sorted(stored.items()):
+        bodies = inits.get(name)
+        if not bodies:
+            continue
+        assigned: set[str] = set()
+        for body in bodies:
+            assigned.update(ASSIGN_RE.findall(body))
+        for prop_name, type_text, has_default in props:
+            if has_default:
+                continue
+            # 可选类型（`T?` / `T!`）由 Swift 自动初始化为 nil，不算漏赋值
+            if type_text.rstrip().endswith(("?", "!")):
+                continue
+            if prop_name in assigned:
+                continue
+            problems.append(
+                f"{name}.{prop_name} ({type_text}) 没有默认值且非可选，"
+                f"但 init 里没有给它赋值 → 编译报 "
+                f"'return from initializer without initializing all stored properties'"
+            )
+    return problems
 
 
 def base_identifiers(type_text: str) -> list[str]:
@@ -173,10 +330,11 @@ def main(argv: list[str]) -> int:
         print("!! 没有找到 .swift 文件", file=sys.stderr)
         return 1
 
-    protocols, properties, kinds = collect(files)
+    protocols, properties, kinds, stored, inits = collect(files)
     project_types = set(protocols)
 
-    problems: list[str] = []
+    # ---- 检查 1：Hashable 合成 ----
+    hashable_problems: list[str] = []
     checked = 0
     for name, protocol_text in sorted(protocols.items()):
         if "Hashable" not in protocol_text:
@@ -185,22 +343,31 @@ def main(argv: list[str]) -> int:
         for prop_name, prop_type in properties.get(name, []):
             ok, bad = is_hashable(prop_type, protocols, kinds, project_types)
             if not ok:
-                problems.append(
+                hashable_problems.append(
                     f"{name}.{prop_name}: {prop_type.strip()}  ← 类型 {bad} 未满足 Hashable，"
                     f"会导致 {name} 合成失败"
                 )
 
+    # ---- 检查 2：初始化完整性 ----
+    init_problems = check_initialization(stored, inits)
+
     print(f"Swift 文件    : {len(files)}")
     print(f"声明类型      : {len(protocols)}")
     print(f"检查 Hashable : {checked} 个")
+    print(f"检查 init     : {len([n for n in inits if inits[n]])} 个类型")
 
-    if problems:
-        print("\n可疑项：", file=sys.stderr)
-        for item in problems:
-            print(f"  ✗ {item}", file=sys.stderr)
+    if hashable_problems or init_problems:
+        if hashable_problems:
+            print("\nHashable 合成隐患：", file=sys.stderr)
+            for item in hashable_problems:
+                print(f"  ✗ {item}", file=sys.stderr)
+        if init_problems:
+            print("\n初始化不完整：", file=sys.stderr)
+            for item in init_problems:
+                print(f"  ✗ {item}", file=sys.stderr)
         return 1
 
-    print("\n✓ 未发现 Hashable 合成隐患")
+    print("\n✓ 协议一致性与初始化完整性检查全部通过")
     return 0
 
 
