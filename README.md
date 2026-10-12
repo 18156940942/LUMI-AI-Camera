@@ -4,6 +4,8 @@
 
 快门由相机按，iPhone 只负责「看」和「想」：实时监看画面、给模特具体的姿势指令、在拍摄现场实时指出肩线歪了/头顶贴边了、拍完帮你把一批照片过一遍。
 
+> **当前状态**：✅ 已在云端 macOS 真实编译通过（Xcode 16.4，0 error），单元测试 **252 / 252 通过**（`** TEST SUCCEEDED **`），未签名 ipa 已产出并通过结构校验。❌ **真机验证未做** —— 延迟、耗电、采集卡实际兼容性都还是未知数。详见[「当前状态」](#当前状态完成度与限制)。
+
 ---
 
 ## ⚠️ 先读这一段：一个必须先说清楚的硬件结论
@@ -73,10 +75,11 @@ LUMI-AI-Camera/
 │   ├── ViewModels/                # 页面状态
 │   ├── Views/                     # 全部界面
 │   └── Resources/                 # Info.plist、资源目录、姿势库 JSON
-├── LUMITests/                     # 单元测试（14 个文件，约 200 个断言）
+├── LUMITests/                     # 单元测试（14 个文件 / 13 个测试类 / 252 个用例，已全部通过）
 ├── LUMI.xcodeproj/                # Xcode 工程（由脚本生成，见下）
-├── docs/                          # 技术可行性、构建安装、硬件连接、功能清单、测试说明
-├── scripts/                       # 工程生成、结构校验、预检、CI 辅助
+├── dist/                          # 预构建的未签名 ipa（已在云端真实构建并校验，见 dist/README.md）
+├── docs/                          # 技术可行性与风险、构建安装、硬件连接、功能清单、测试说明
+├── scripts/                       # 工程生成、结构校验、预检、CI 辅助（共 8 个工具）
 ├── tools/                         # 电脑端 MJPEG 中继脚本
 └── .github/workflows/             # 云端 macOS 构建（产出未签名 ipa）
 ```
@@ -93,7 +96,7 @@ LUMI-AI-Camera/
 python scripts/preflight.py
 ```
 
-它会检查：姿势库 JSON 与 Swift 枚举是否一一对应、Xcode 工程结构是否完整、所有源码是否都挂进了 build phase、测试引用的类型是否真实存在。**7 项全绿再往下走**，能省掉大量「云端编译失败但不知道为什么」的时间。
+它会检查：姿势库 JSON 与 Swift 枚举是否一一对应、Xcode 工程结构是否完整（含按 OpenStep 文法**真实解析** `project.pbxproj`，而不是正则近似）、所有源码是否都挂进了 build phase、源码交叉引用的类型是否真实存在、`Hashable` 协议能否被合成、`init` 是否漏赋值。**8 项全绿再往下走**，能省掉大量「云端编译失败但不知道为什么」的时间。
 
 ### 第 1 步：推送到 GitHub，让云端 Mac 编译
 
@@ -108,6 +111,8 @@ git push -u origin main
 
 推送后打开仓库的 **Actions** 标签页，`Build unsigned IPA` 会自动开始运行。跑完在页面底部的 **Artifacts** 里下载 `LUMI-unsigned-ipa`。
 
+> **这一步其实可以跳过**：本包已经附上一份**已在云端真实构建出来的 ipa** —— `dist/LUMI-unsigned-1.0.0-1.ipa`（来源、SHA-256 校验值、包结构见 [`dist/README.md`](dist/README.md)）。除非你改动了代码，否则不必自己再跑一遍 CI。
+
 > 想在本地 Mac 上编译也可以：`xcodebuild archive -project LUMI.xcodeproj -scheme LUMI -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/LUMI.xcarchive CODE_SIGNING_ALLOWED=NO`
 
 详细步骤（含失败排查）见 [`docs/02-构建与安装指南.md`](docs/02-构建与安装指南.md)。
@@ -120,7 +125,7 @@ git push -u origin main
 2. 把下载的 `.ipa` 传进自签工具，用你的 Apple ID 签名；
 3. 装完首次打开若提示「不受信任的开发者」，去 **设置 → 通用 → VPN与设备管理** 里信任你的开发者证书。
 
-**免费 Apple ID 的现实约束**：签名有效期 7 天、同时最多 3 个自签 App、无法使用推送与部分后台能力（LUMI 不需要这些）。到期后重新运行一次 GitHub Actions 再装即可。
+**免费 Apple ID 的现实约束**：签名有效期 7 天、同时最多 3 个自签 App、无法使用推送与部分后台能力（LUMI 不需要这些）。到期后在自签工具里**重新签一次同一个 ipa** 就行 —— 不需要重跑 CI，也不需要改任何代码。
 
 ### 第 3 步：接通相机（iPhone 路径）
 
@@ -195,13 +200,16 @@ UUID 由「类型前缀 + 相对路径」的 MD5 推出，是确定性的：同�
 
 ## 测试
 
+**已经真实跑过了**：`Executed 252 tests, with 0 failures` → `** TEST SUCCEEDED **`（Xcode 16.4 / iOS 18.5 模拟器，见 [run #38198820127](https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38198820127)）。
+
+本地跑（需要 macOS；没有 Mac 也没关系，GitHub Actions 会自动跑）：
+
 ```bash
-# 需要 macOS。GitHub Actions 会自动跑，所以没有 Mac 也一样有测试保障。
 xcodebuild test -project LUMI.xcodeproj -scheme LUMI \
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
 ```
 
-14 个测试文件覆盖的都是**能用数字断言的逻辑**，不是「跑通即可」：
+14 个测试文件（13 个测试类、**252 个用例**）覆盖的都是**能用数字断言的逻辑**，不是「跑通即可」：
 
 - 几何方向约定（Vision 原点左下 vs SwiftUI 原点左上，搞反了 UI 上很难发现）
 - 推荐引擎打分（权重、排序稳定性、场景不匹配时不清空结果）
@@ -230,15 +238,34 @@ App 首次启动会展示一页隐私说明，其中逐条列出做不到的事�
 
 ## 当前状态：完成度与限制
 
-**✅ 已完成（代码层面）**：全部 6 个页面、6 项核心功能、三路视频输入、离线姿势库、Vision 姿态与门控、构图分析、照片分析、设置与持久化、单元测试、云端构建流水线与中继脚本。
+**✅ 已完成，并已通过云端 macOS 真实编译与测试**：全部 6 个页面、6 项核心功能、三路视频输入、离线姿势库、Vision 姿态与门控、构图分析、照片分析、设置与持久化、单元测试、云端构建流水线与中继脚本。
 
-**⚠️ 尚未验证**：**这份代码从未被编译过。** 本项目的开发环境是 Windows，没有 Xcode 与 swiftc，因此：
+运行记录：[Actions run #38198820127](https://github.com/18156940942/LUMI-AI-Camera/actions/runs/38198820127)（Xcode 16.4 / macOS 15 runner，11 分 17 秒）
 
-- 无法编译 → 语法错误、类型不匹配、API 签名差异**都可能存在**；
-- 无法运行单元测试 → 测试断言是按手算的期望值写的，但没有执行过；
-- 无法在真机上验证延迟、耗电与实际体验。
+| 环节 | 结果 |
+|---|---|
+| 编译 | ✅ **通过，0 error**（iPhoneOS 18.5 SDK，部署目标 iOS 17.0） |
+| 单元测试 | ✅ **`** TEST SUCCEEDED **`** —— 13 个测试类、**252 / 252 通过**、0 失败 |
+| 未签名 ipa | ✅ 已产出并通过结构校验（`LUMI-unsigned-1.0.0-1.ipa`，可执行文件 1.71 MB） |
+| 真机验证 | ❌ **仍未做** |
 
-我做了两件事来降低这个风险：(1) 用 `scripts/preflight.py` 自动校验了姿势库↔Swift 枚举一致性、Xcode 工程结构完整性、源码交叉引用（这个过程确实抓出了 4 处旋转角度阈值错误和 2 个脚本 bug）；(2) 在 GitHub Actions 里把「编译 + 跑测试」作为必过门槛，所以第一次推送就能拿到真实的编译错误清单。
+**要说清楚的是：这个仓库的第一版代码确实编译不过。** 我没有 Mac，编译错误只能在云端 CI 上暴露出来。从第 1 轮到第 6 轮，CI 一轮报一个错，一轮修一个真实缺陷：
+
+| 轮次 | CI 的报错 | 真实缺陷 |
+|---|---|---|
+| 1 | `The project 'LUMI' is damaged…parse error`（exit 1） | 生成的 pbxproj 里 `PBXTargetDependency` 区块的右花括号被截断 |
+| 2 | 同上（exit 74） | 分组树生成了一个空路径 group，输出 `path = ;` —— OpenStep plist 里空值是语法错误 |
+| 3 | `'ShootingPreset' does not conform to 'Hashable'` | `OverlayConfiguration` 漏了 `Hashable`，导致协议无法合成 |
+| 4 | `return from initializer without initializing all stored properties` | `SettingsStore.init` 漏赋值 3 个存储属性 |
+| 5 | 1 个测试失败：`("nil") is not equal to ("Optional(FindingLevel.info)")` | **产品代码的浮点边界缺陷**：`0.09999999999999998 < 0.10`，判定「恰好等于阈值」时漏判 |
+| 6 | —— | **全绿** |
+
+前 4 个是我写代码时的真实疏漏；第 5 个是产品代码的浮点边界问题（**不是测试写错**，我改的是产品代码）。修完之后我把这些错误类型做成了静态检查项补进 `preflight`，让它们变成不会再犯的类别 —— 逐轮根因见 [`docs/04`](docs/04-功能完成度与已知限制.md#编译是怎么完成的)。
+
+**仍然需要你预期的事**：
+
+- **只跑过 iOS 模拟器，没上过真机**。延迟、耗电、发热、采集卡实际兼容性都还是未知数；
+- **编译通过只代表类型正确，不代表体验正确**。
 
 **❌ 明确未实现的**（都在 UI 上标注了，没有伪装成已完成）：
 
@@ -261,7 +288,8 @@ App 首次启动会展示一页隐私说明，其中逐条列出做不到的事�
 | [`docs/02-构建与安装指南.md`](docs/02-构建与安装指南.md) | 云端 macOS 构建全流程、未签名 ipa 的组装原理、免费 Apple ID 安装与续签 |
 | [`docs/03-硬件连接与监看指南.md`](docs/03-硬件连接与监看指南.md) | 采集卡选型、相机菜单设置、中继脚本用法、延迟与带宽、故障排查对照表 |
 | [`docs/04-功能完成度与已知限制.md`](docs/04-功能完成度与已知限制.md) | 逐项完成度、未实现清单及理由、需求覆盖对照表 |
-| [`docs/05-单元测试说明.md`](docs/05-单元测试说明.md) | 测试清单、每个文件在守什么、如何在本地跑 |
+| [`docs/05-单元测试说明.md`](docs/05-单元测试说明.md) | 测试清单、每个文件在守什么、如何在本地跑、**252 / 252 通过的实际结果** |
+| [`dist/README.md`](dist/README.md) | 预构建 ipa 的来源（CI run、Xcode 版本、提交）、SHA-256 校验值、包结构、自签说明 |
 
 ---
 
