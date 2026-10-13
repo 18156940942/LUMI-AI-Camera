@@ -367,6 +367,12 @@ def selftest() -> int:
 # HTTP 转发服务（与本地中继、火山适配层同一接口形态）
 # ---------------------------------------------------------------------------
 
+
+def _err(code: str, message: str) -> dict[str, Any]:
+    """App 的 RetouchClient 只认 {"error": {"code", "message"}} 嵌套结构 ——
+    扁平字符串会被显示成「没有说明原因」。所有错误返回都走这里。"""
+    return {"error": {"code": code, "message": message}}
+
 def serve(host: str, port: int, token: str, debug: bool) -> int:
     from lumi_volc_beauty import _parse_multipart  # noqa: PLC0415
 
@@ -404,24 +410,24 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
                     for p in list(PRESETS.values()) + list(LOCAL_PRESET_MAP.values())
                 ]})
                 return
-            self._json(404, {"error": "not found"})
+            self._json(404, _err("not_found", f"没有这个端点：{self.path}"))
 
         def do_POST(self) -> None:  # noqa: N802
             if not self.path.startswith("/retouch"):
-                self._json(404, {"error": "not found"})
+                self._json(404, _err("not_found", f"没有这个端点：{self.path}"))
                 return
             if not self._authorized():
-                self._json(401, {"error": "unauthorized"})
+                self._json(401, _err("unauthorized", "访问口令不对或缺失"))
                 return
             content_type = self.headers.get("Content-Type", "")
             if "multipart/form-data" not in content_type:
-                self._json(400, {"error": "需要 multipart/form-data"})
+                self._json(400, _err("bad_request", "需要 multipart/form-data（字段 image / preset / intensity）"))
                 return
             length = int(self.headers.get("Content-Length", "0"))
             fields, files = _parse_multipart(content_type, self.rfile.read(length))
             image = files.get("image")
             if not image:
-                self._json(400, {"error": "缺少 image 文件字段"})
+                self._json(400, _err("bad_request", "缺少 image 文件字段"))
                 return
             preset_id = (fields.get("preset") or "").strip()
             try:
@@ -431,12 +437,12 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
             try:
                 preset = resolve_preset(preset_id)
             except AliError as exc:
-                self._json(400, {"error": str(exc)})
+                self._json(400, _err("bad_preset", str(exc)))
                 return
             try:
                 result = AliBeautyClient(ak, sk, debug=debug).beautify(image, preset, intensity)
             except AliError as exc:
-                self._json(502, {"error": str(exc)})
+                self._json(502, _err("upstream_error", str(exc)))
                 return
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
