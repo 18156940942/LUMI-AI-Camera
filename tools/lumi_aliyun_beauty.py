@@ -70,6 +70,7 @@ import io
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -159,7 +160,7 @@ def route_for(preset_id: str) -> str:
 
     beauty     portrait.* 与 ali.*          → 阿里云 FaceBeauty
     local      enhance.* / grade.*          → 本机跑同一套算法（对 App 透明）
-    generative generative.*                 → 百炼 qwen-image-edit（指令改图）
+    generative generative.*                 → 百炼 wanx2.1-imageedit（指令改图）
     """
     if preset_id in PRESETS or preset_id in LOCAL_PRESET_MAP:
         return ROUTE_BEAUTY
@@ -303,32 +304,36 @@ class AliBeautyClient:
 
 
 # ---------------------------------------------------------------------------
-# 百炼 qwen-image-edit（generative.* 路由：指令式图像编辑，同步接口）
+# 百炼 wanx2.1-imageedit（generative.* 路由：指令式图像编辑，异步两步）
 # ---------------------------------------------------------------------------
 
 class DashScopeGenerative:
-    """阿里云百炼「通义千问图像编辑」适配层。
+    """阿里云百炼「通义万相图像编辑」适配层（generative.* 路由）。
 
-    已核实（DashScope 官方 API 文档）：
-      · POST https://dashscope.aliyuncs.com/api/v1/services/aigc/
-        multimodal-generation/generation（**同步**，一次调用直接回图）
+    已**真实跑通**（2026-10-13，毕业季人像，"把天空换成黄昏的云"，10 秒出图）：
+      · 模型：wanx2.1-imageedit，function = description_edit（指令编辑）
+      · **异步两步**（与美颜的同步不同）：
+        1. POST /api/v1/services/aigc/image2image/image-synthesis
+           （header 加 X-DashScope-Async: enable）→ task_id
+           base_image_url **接受 data:image/...;base64 URI**，免 OSS
+        2. 轮询 GET /api/v1/tasks/{task_id} 到 SUCCEEDED → results[0].url
       · 鉴权：Authorization: Bearer {DASHSCOPE_API_KEY}
-        —— 注意这是**百炼控制台的 API Key（sk-…）**，与 AccessKey（LTAI…）
-        是两套体系，别混用
-      · 请求体：model=qwen-image-edit，input.messages[0].content = [
-        {"image": "<URL 或 data:base64>"}, {"text": "<指令>"}]
-      · 响应：output.choices[0].message.content[0].image（结果图 URL）
-      · 输入限制：≤10MB，分辨率 384~2048px 最佳
+        —— 这是**百炼控制台的 API Key（sk-…）**，与 AccessKey（LTAI…）两套体系
+      · 输入限制：≤10MB；长边统一压到 2048
 
     密钥从哪来：百炼控制台（bailian.console.aliyun.com）→ API-KEY 管理 →
-    创建 sk-… 开头的 Key。**需先在百炼开通模型服务**。
+    创建 sk-… 开头的 Key。需先在百炼开通模型服务。
     """
 
-    name = "dashscope:qwen-image-edit"
-    URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
-    MODEL = "qwen-image-edit"
-    #: 百炼侧输入上限 10MB；长边统一压到 2048（官方推荐的最佳分辨率上限）
+    name = "dashscope:wanx2.1-imageedit"
+    SUBMIT_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis"
+    TASK_URL = "https://dashscope.aliyuncs.com/api/v1/tasks/"
+    MODEL = "wanx2.1-imageedit"
+    FUNCTION = "description_edit"
+    #: 百炼侧输入上限 10MB；长边统一压到 2048
     MAX_SIDE = 2048
+    POLL_INTERVAL = 3.0
+    POLL_MAX = 100  # 3s × 100 = 5 分钟
 
     def __init__(self, api_key: str, timeout: float = 300.0, debug: bool = False) -> None:
         self.api_key = api_key
@@ -337,12 +342,11 @@ class DashScopeGenerative:
 
     @staticmethod
     def _prepare_image(image: bytes) -> str:
-        """长边压到 2048（官方推荐区间），转 data URI 内联上传。"""
+        """长边压到 2048，转 data URI（wanx 的 base_image_url 实测接受）。"""
         try:
             import cv2  # noqa: PLC0415
             import numpy as np  # noqa: PLC0415
         except ImportError:
-            # 没有 opencv：原图 ≤10MB 就直接内联，否则如实报错
             if len(image) <= 10 * 1024 * 1024:
                 return "data:image/jpeg;base64," + base64.b64encode(image).decode()
             raise AliError(
@@ -363,69 +367,94 @@ class DashScopeGenerative:
             raise AliError("图片编码失败")
         return "data:image/jpeg;base64," + base64.b64encode(enc.tobytes()).decode()
 
+    def _headers(self, extra: dict[str, str] | None = None) -> dict[str, str]:
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "lumi-aliyun-beauty/1.0",
+        }
+        if extra:
+            headers.update(extra)
+        return headers
+
     def edit(self, image: bytes, prompt: str) -> bytes:
         prompt = (prompt or "").strip()
         if not prompt:
             raise AliError("生成式改动需要文字指令：在 App 的「文字指令」框里写清楚要改什么。")
         data_uri = self._prepare_image(image)
+
+        # 第 1 步：提交异步任务
         payload = {
             "model": self.MODEL,
             "input": {
-                "messages": [{
-                    "role": "user",
-                    "content": [
-                        {"image": data_uri},
-                        {"text": prompt},
-                    ],
-                }],
+                "function": self.FUNCTION,
+                "prompt": prompt,
+                "base_image_url": data_uri,
             },
-            "parameters": {"watermark": False},
+            "parameters": {"n": 1},
         }
         req = urllib.request.Request(
-            self.URL,
+            self.SUBMIT_URL,
             data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "lumi-aliyun-beauty/1.0",
-            },
+            headers=self._headers({"X-DashScope-Async": "enable"}),
             method="POST",
         )
         if self.debug:
-            print(f"[dashscope] POST {self.URL} model={self.MODEL} prompt={prompt!r}", file=sys.stderr)
+            print(f"[dashscope] 提交 {self.MODEL}/{self.FUNCTION} prompt={prompt!r}", file=sys.stderr)
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:400]
-            raise AliError(f"百炼接口 HTTP {exc.code}：{detail}", http_status=502) from exc
+            raise AliError(f"百炼提交 HTTP {exc.code}：{detail}", http_status=502) from exc
         except Exception as exc:  # noqa: BLE001
             raise AliError(f"连不上百炼接口（{type(exc).__name__}: {exc}）") from exc
 
-        if self.debug:
-            print("[dashscope] 原始响应:", json.dumps(data, ensure_ascii=False)[:400], file=sys.stderr)
+        task_id = (data.get("output") or {}).get("task_id")
+        if not task_id:
+            raise AliError(f"百炼返回里没有 task_id：{json.dumps(data, ensure_ascii=False)[:300]}")
 
-        # 结果 URL：output.choices[0].message.content 里找 image 字段（多路径容错）
-        result_url = None
-        try:
-            content = data["output"]["choices"][0]["message"]["content"]
-            for item in content if isinstance(content, list) else []:
-                if isinstance(item, dict) and item.get("image"):
-                    result_url = item["image"]
-                    break
-        except (KeyError, TypeError, IndexError):
-            pass
-        if not result_url:
-            raise AliError(
-                f"百炼返回里找不到结果图：{json.dumps(data, ensure_ascii=False)[:300]}"
-            )
-
-        try:
-            dl = urllib.request.Request(result_url, headers={"User-Agent": "lumi-aliyun-beauty/1.0"})
-            with urllib.request.urlopen(dl, timeout=self.timeout) as r:
-                return r.read()
-        except Exception as exc:  # noqa: BLE001
-            raise AliError(f"下载生成结果失败：{type(exc).__name__}: {exc}") from exc
+        # 第 2 步：轮询到 SUCCEEDED / FAILED
+        for i in range(self.POLL_MAX):
+            time.sleep(self.POLL_INTERVAL)
+            pr = urllib.request.Request(self.TASK_URL + task_id, headers=self._headers())
+            try:
+                with urllib.request.urlopen(pr, timeout=30) as resp:
+                    st = json.loads(resp.read().decode("utf-8"))
+            except Exception as exc:  # noqa: BLE001
+                raise AliError(f"轮询任务状态失败（{type(exc).__name__}: {exc}）") from exc
+            status = (st.get("output") or {}).get("task_status")
+            if self.debug:
+                print(f"[dashscope] 轮询 {i + 1}: {status}", file=sys.stderr)
+            if status == "SUCCEEDED":
+                results = (st.get("output") or {}).get("results") or []
+                result_url = next((r.get("url") for r in results if r.get("url")), None)
+                if not result_url:
+                    raise AliError(f"任务成功但没有结果 URL：{json.dumps(st, ensure_ascii=False)[:300]}")
+                try:
+                    dl = urllib.request.Request(result_url, headers={"User-Agent": "lumi-aliyun-beauty/1.0"})
+                    with urllib.request.urlopen(dl, timeout=self.timeout) as r:
+                        raw = r.read()
+                except Exception as exc:  # noqa: BLE001
+                    raise AliError(f"下载生成结果失败：{type(exc).__name__}: {exc}") from exc
+                # wanx 返回的是 PNG，统一转 JPEG，与美颜/本地路由保持一致
+                if raw[:3] != b"\xff\xd8\xff":
+                    try:
+                        import cv2  # noqa: PLC0415
+                        import numpy as np  # noqa: PLC0415
+                        img = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
+                        if img is not None:
+                            ok2, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 95])
+                            if ok2:
+                                raw = enc.tobytes()
+                    except ImportError:
+                        pass  # 没 opencv 就原样返回（App 的 UIImage 也能解 PNG）
+                return raw
+            if status == "FAILED":
+                message = (st.get("output") or {}).get("message") or json.dumps(st, ensure_ascii=False)[:300]
+                raise AliError(f"百炼任务失败：{message}")
+            # PENDING / RUNNING → 继续等
+        raise AliError(f"百炼任务超时（{int(self.POLL_INTERVAL * self.POLL_MAX)} 秒未完成）")
 
 
 # ---------------------------------------------------------------------------
@@ -507,8 +536,8 @@ def selftest() -> int:
 
     print("\n=== 2.6 DashScope 请求体结构（离线核对官方文档） ===")
     payload_model = DashScopeGenerative.MODEL
-    check("模型名 qwen-image-edit", payload_model == "qwen-image-edit", payload_model)
-    check("端点为百炼多模态生成", "multimodal-generation" in DashScopeGenerative.URL)
+    check("模型名 wanx2.1-imageedit", payload_model == "wanx2.1-imageedit", payload_model)
+    check("端点为百炼图像编辑", "image2image/image-synthesis" in DashScopeGenerative.SUBMIT_URL)
 
     print("\n=== 3. multipart 解析（与 App 同形态） ===")
     from lumi_volc_beauty import _parse_multipart  # noqa: PLC0415 —— 复用同一实现
@@ -581,7 +610,7 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
                     "routes": {
                         "beauty": "阿里云 FaceBeauty（portrait.* / ali.*）",
                         "local": "本机算法（enhance.* / grade.*）",
-                        "generative": "百炼 qwen-image-edit（generative.*）",
+                        "generative": "百炼 wanx2.1-imageedit（generative.*）",
                     },
                     "presets": len(PRESETS) + len(LOCAL_PRESET_MAP),
                 })
