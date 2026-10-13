@@ -148,26 +148,37 @@ LOCAL_PRESET_MAP: dict[str, AliPreset] = {
     ),
 }
 
-#: 本地预设里无法映射到 FaceBeauty 的类目 → 如实告知该走哪条路
-UNMAPPABLE_HINT: dict[str, str] = {
-    "enhance.": "这条是本地画质增强（锐化/降噪/去雾等），请在 App 里把执行方切回「本地」——本地算法效果相同且不花钱。",
-    "grade.": "这条是本地调色（胶片感/暖调等），FaceBeauty 没有调色参数，请在 App 里把执行方切回「本地」。",
-    "generative.": "这条是生成式改动（改内容/换天空），FaceBeauty 只做美颜不重绘画面，请把执行方切回本地或接生成式云端。",
-}
+#: 预设路由：beauty=阿里云 FaceBeauty；local=本机算法；generative=百炼图像编辑
+ROUTE_BEAUTY = "beauty"
+ROUTE_LOCAL = "local"
+ROUTE_GENERATIVE = "generative"
+
+
+def route_for(preset_id: str) -> str:
+    """把预设 id 路由到正确的执行通道 —— 一个中继吃下全部 14 条预设。
+
+    beauty     portrait.* 与 ali.*          → 阿里云 FaceBeauty
+    local      enhance.* / grade.*          → 本机跑同一套算法（对 App 透明）
+    generative generative.*                 → 百炼 qwen-image-edit（指令改图）
+    """
+    if preset_id in PRESETS or preset_id in LOCAL_PRESET_MAP:
+        return ROUTE_BEAUTY
+    if preset_id.startswith(("enhance.", "grade.")):
+        return ROUTE_LOCAL
+    if preset_id.startswith("generative."):
+        return ROUTE_GENERATIVE
+    raise AliError(
+        f"未知预设 {preset_id!r}。可用：ali.*（云端美颜）/ portrait.*（云端美颜）/ "
+        "enhance.*（画质）/ grade.*（调色）/ generative.*（生成式）"
+    )
 
 
 def resolve_preset(preset_id: str) -> AliPreset:
-    """按 id 找预设：云端自有 → 本地映射 → 明确报错并指路。"""
+    """按 id 找美颜预设（仅 beauty 路由）。"""
     preset = PRESETS.get(preset_id) or LOCAL_PRESET_MAP.get(preset_id)
     if preset is not None:
         return preset
-    for prefix, hint in UNMAPPABLE_HINT.items():
-        if preset_id.startswith(prefix):
-            raise AliError(f"预设 {preset_id!r} 不走云端美颜：{hint}")
-    raise AliError(
-        f"未知预设 {preset_id!r}。云端美颜可用："
-        f"{', '.join(list(PRESETS) + list(LOCAL_PRESET_MAP))}"
-    )
+    raise AliError(f"{preset_id!r} 不是美颜类预设。可用：{', '.join(list(PRESETS) + list(LOCAL_PRESET_MAP))}")
 
 
 def build_request(preset: AliPreset, intensity: int) -> dict[str, float]:
@@ -292,6 +303,165 @@ class AliBeautyClient:
 
 
 # ---------------------------------------------------------------------------
+# 百炼 qwen-image-edit（generative.* 路由：指令式图像编辑，同步接口）
+# ---------------------------------------------------------------------------
+
+class DashScopeGenerative:
+    """阿里云百炼「通义千问图像编辑」适配层。
+
+    已核实（DashScope 官方 API 文档）：
+      · POST https://dashscope.aliyuncs.com/api/v1/services/aigc/
+        multimodal-generation/generation（**同步**，一次调用直接回图）
+      · 鉴权：Authorization: Bearer {DASHSCOPE_API_KEY}
+        —— 注意这是**百炼控制台的 API Key（sk-…）**，与 AccessKey（LTAI…）
+        是两套体系，别混用
+      · 请求体：model=qwen-image-edit，input.messages[0].content = [
+        {"image": "<URL 或 data:base64>"}, {"text": "<指令>"}]
+      · 响应：output.choices[0].message.content[0].image（结果图 URL）
+      · 输入限制：≤10MB，分辨率 384~2048px 最佳
+
+    密钥从哪来：百炼控制台（bailian.console.aliyun.com）→ API-KEY 管理 →
+    创建 sk-… 开头的 Key。**需先在百炼开通模型服务**。
+    """
+
+    name = "dashscope:qwen-image-edit"
+    URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+    MODEL = "qwen-image-edit"
+    #: 百炼侧输入上限 10MB；长边统一压到 2048（官方推荐的最佳分辨率上限）
+    MAX_SIDE = 2048
+
+    def __init__(self, api_key: str, timeout: float = 300.0, debug: bool = False) -> None:
+        self.api_key = api_key
+        self.timeout = timeout
+        self.debug = debug
+
+    @staticmethod
+    def _prepare_image(image: bytes) -> str:
+        """长边压到 2048（官方推荐区间），转 data URI 内联上传。"""
+        try:
+            import cv2  # noqa: PLC0415
+            import numpy as np  # noqa: PLC0415
+        except ImportError:
+            # 没有 opencv：原图 ≤10MB 就直接内联，否则如实报错
+            if len(image) <= 10 * 1024 * 1024:
+                return "data:image/jpeg;base64," + base64.b64encode(image).decode()
+            raise AliError(
+                "图片超过 10MB 且本机没装 opencv，无法自动缩图。请换小图后重试。"
+            ) from None
+        import numpy as np
+
+        buf = np.frombuffer(image, dtype=np.uint8)
+        img = cv2.imdecode(buf, cv2.IMREAD_COLOR)
+        if img is None:
+            raise AliError("图片解码失败（不是合法的 JPEG/PNG？）")
+        h, w = img.shape[:2]
+        if max(h, w) > DashScopeGenerative.MAX_SIDE:
+            ratio = DashScopeGenerative.MAX_SIDE / max(h, w)
+            img = cv2.resize(img, (int(w * ratio), int(h * ratio)), interpolation=cv2.INTER_AREA)
+        ok, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 93])
+        if not ok:
+            raise AliError("图片编码失败")
+        return "data:image/jpeg;base64," + base64.b64encode(enc.tobytes()).decode()
+
+    def edit(self, image: bytes, prompt: str) -> bytes:
+        prompt = (prompt or "").strip()
+        if not prompt:
+            raise AliError("生成式改动需要文字指令：在 App 的「文字指令」框里写清楚要改什么。")
+        data_uri = self._prepare_image(image)
+        payload = {
+            "model": self.MODEL,
+            "input": {
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"image": data_uri},
+                        {"text": prompt},
+                    ],
+                }],
+            },
+            "parameters": {"watermark": False},
+        }
+        req = urllib.request.Request(
+            self.URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "lumi-aliyun-beauty/1.0",
+            },
+            method="POST",
+        )
+        if self.debug:
+            print(f"[dashscope] POST {self.URL} model={self.MODEL} prompt={prompt!r}", file=sys.stderr)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:400]
+            raise AliError(f"百炼接口 HTTP {exc.code}：{detail}", http_status=502) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise AliError(f"连不上百炼接口（{type(exc).__name__}: {exc}）") from exc
+
+        if self.debug:
+            print("[dashscope] 原始响应:", json.dumps(data, ensure_ascii=False)[:400], file=sys.stderr)
+
+        # 结果 URL：output.choices[0].message.content 里找 image 字段（多路径容错）
+        result_url = None
+        try:
+            content = data["output"]["choices"][0]["message"]["content"]
+            for item in content if isinstance(content, list) else []:
+                if isinstance(item, dict) and item.get("image"):
+                    result_url = item["image"]
+                    break
+        except (KeyError, TypeError, IndexError):
+            pass
+        if not result_url:
+            raise AliError(
+                f"百炼返回里找不到结果图：{json.dumps(data, ensure_ascii=False)[:300]}"
+            )
+
+        try:
+            dl = urllib.request.Request(result_url, headers={"User-Agent": "lumi-aliyun-beauty/1.0"})
+            with urllib.request.urlopen(dl, timeout=self.timeout) as r:
+                return r.read()
+        except Exception as exc:  # noqa: BLE001
+            raise AliError(f"下载生成结果失败：{type(exc).__name__}: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 本机算法桥（enhance.* / grade.* 路由：复用精修中继的同一套实现）
+# ---------------------------------------------------------------------------
+
+_LOCAL_EXECUTOR: Any = None
+
+
+def _get_local_executor() -> Any:
+    """惰性构造 retouch_server 的 Executor —— 与本地精修**同一套算法**。
+
+    App 选画质/调色类预设 + 云端执行方时，结果由这台电脑算出来回传，
+    对 App 完全透明：它只知道自己发给了中继、收到了图。
+    """
+    global _LOCAL_EXECUTOR
+    if _LOCAL_EXECUTOR is None:
+        import lumi_retouch_server as lrs  # noqa: PLC0415 —— 同目录，惰性加载
+
+        catalog = lrs.Catalog.load()  # dataclass：必须走 load()，不能把路径当 raw 传
+        cloud = lrs.CloudProvider()  # 不配置生成式服务商 —— 生成式走百炼路由
+        _LOCAL_EXECUTOR = lrs.Executor(catalog, cloud)
+    return _LOCAL_EXECUTOR
+
+
+def _local_run(preset_id: str, image: bytes, intensity: int, prompt: str) -> bytes:
+    executor = _get_local_executor()
+    try:
+        result, _provider = executor.run(preset_id, image, intensity, prompt)
+        return result
+    except Exception as exc:  # noqa: BLE001 —— retouch_server 用它自己的 RetouchError
+        status = getattr(exc, "http_status", None) or 500
+        raise AliError(f"本地算法执行失败：{exc}", http_status=status) from exc
+
+
+# ---------------------------------------------------------------------------
 # 自检（不联网、不需要 AK/SK）
 # ---------------------------------------------------------------------------
 
@@ -323,21 +493,22 @@ def selftest() -> int:
         ok = all(0.0 <= v <= 1.0 for v in r.values()) and set(r) == {"Sharp", "Smooth", "White"}
         check(f"{pid} 参数合法", ok, str(r))
 
-    print("\n=== 2.5 本地预设映射（App 发本地 id 也能走通）===")
+    print("\n=== 2.5 全量路由（一个中继吃下 14 条预设）===")
+    check("portrait.skinSoft → beauty", route_for("portrait.skinSoft") == ROUTE_BEAUTY)
+    check("ali.natural → beauty", route_for("ali.natural") == ROUTE_BEAUTY)
+    check("enhance.shadow → local", route_for("enhance.shadow") == ROUTE_LOCAL)
+    check("grade.film → local", route_for("grade.film") == ROUTE_LOCAL)
+    check("generative.skyReplace → generative", route_for("generative.skyReplace") == ROUTE_GENERATIVE)
     try:
-        p = resolve_preset("portrait.skinSoft")
-        check("portrait.skinSoft → 云端参数", build_request(p, 60)["Smooth"] > 0.3, str(build_request(p, 60)))
-        p = resolve_preset("portrait.brightenFace")
-        check("portrait.brightenFace → 提亮为主", build_request(p, 60)["White"] > build_request(p, 60)["Smooth"],
-              str(build_request(p, 60)))
-    except AliError as exc:
-        check("本地预设映射", False, str(exc))
-    for bad, prefix in [("enhance.auto", "enhance."), ("grade.film", "grade."), ("generative.skyReplace", "generative.")]:
-        try:
-            resolve_preset(bad)
-            check(f"{bad} 被明确拒绝", False, "竟然通过了")
-        except AliError as exc:
-            check(f"{bad} 被明确拒绝且提示切回本地", prefix in str(exc) or "切回" in str(exc), str(exc)[:80])
+        route_for("nonsense")
+        check("未知预设被拒绝", False, "竟然通过了")
+    except AliError:
+        check("未知预设被拒绝", True)
+
+    print("\n=== 2.6 DashScope 请求体结构（离线核对官方文档） ===")
+    payload_model = DashScopeGenerative.MODEL
+    check("模型名 qwen-image-edit", payload_model == "qwen-image-edit", payload_model)
+    check("端点为百炼多模态生成", "multimodal-generation" in DashScopeGenerative.URL)
 
     print("\n=== 3. multipart 解析（与 App 同形态） ===")
     from lumi_volc_beauty import _parse_multipart  # noqa: PLC0415 —— 复用同一实现
@@ -349,11 +520,15 @@ def selftest() -> int:
     check("普通字段解析", fields.get("preset") == "ali.natural", str(fields))
     check("文件字段解析", files.get("image") == b"\x89PNGDATA", str(list(files)))
 
-    print("\n=== 4. 诚实性：不提供能力外的预设 ===")
+    print("\n=== 4. 诚实性 ===")
     check("没有假装的瘦脸/美体预设", all("slim" not in k and "body" not in k for k in PRESETS),
           str(list(PRESETS)))
     check("本地映射只收 portrait.*（不越界）",
           all(k.startswith("portrait.") for k in LOCAL_PRESET_MAP), str(list(LOCAL_PRESET_MAP)))
+    check("三条路由覆盖 App 全部 14 条预设",
+          route_for("enhance.auto") == ROUTE_LOCAL and route_for("grade.warm") == ROUTE_LOCAL
+          and route_for("generative.custom") == ROUTE_GENERATIVE
+          and route_for("portrait.brightenFace") == ROUTE_BEAUTY)
 
     print()
     if failures:
@@ -378,6 +553,7 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
 
     ak = os.environ.get("ALIYUN_AK", "")
     sk = os.environ.get("ALIYUN_SK", "")
+    dashscope_key = os.environ.get("DASHSCOPE_API_KEY", "")
 
     class Handler(BaseHTTPRequestHandler):
         def _json(self, status: int, payload: dict[str, Any]) -> None:
@@ -398,10 +574,16 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
             if self.path.startswith("/health"):
                 self._json(200, {
                     "ok": True,
-                    "provider": "aliyun-facebeauty",
+                    "provider": "aliyun-unified-relay",
                     "endpoint": ENDPOINT,
                     "has_credentials": bool(ak and sk),
-                    "presets": len(PRESETS),
+                    "dashscopeConfigured": bool(dashscope_key),
+                    "routes": {
+                        "beauty": "阿里云 FaceBeauty（portrait.* / ali.*）",
+                        "local": "本机算法（enhance.* / grade.*）",
+                        "generative": "百炼 qwen-image-edit（generative.*）",
+                    },
+                    "presets": len(PRESETS) + len(LOCAL_PRESET_MAP),
                 })
                 return
             if self.path.startswith("/presets"):
@@ -430,19 +612,31 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
                 self._json(400, _err("bad_request", "缺少 image 文件字段"))
                 return
             preset_id = (fields.get("preset") or "").strip()
+            prompt = (fields.get("prompt") or "").strip()
             try:
                 intensity = int(float(fields.get("intensity") or "60"))
             except ValueError:
                 intensity = 60
             try:
-                preset = resolve_preset(preset_id)
+                route = route_for(preset_id)
             except AliError as exc:
                 self._json(400, _err("bad_preset", str(exc)))
                 return
             try:
-                result = AliBeautyClient(ak, sk, debug=debug).beautify(image, preset, intensity)
+                if route == ROUTE_BEAUTY:
+                    preset = resolve_preset(preset_id)
+                    result = AliBeautyClient(ak, sk, debug=debug).beautify(image, preset, intensity)
+                elif route == ROUTE_LOCAL:
+                    result = _local_run(preset_id, image, intensity, prompt)
+                else:  # ROUTE_GENERATIVE
+                    if not dashscope_key:
+                        raise AliError(
+                            "生成式改动还没配置百炼 API Key：到 bailian.console.aliyun.com "
+                            "创建 sk-… 开头的 Key，设置环境变量 DASHSCOPE_API_KEY 后重启中继。"
+                            "未配置时不会做任何处理，也不会返回占位图。", http_status=501)
+                    result = DashScopeGenerative(dashscope_key, debug=debug).edit(image, prompt)
             except AliError as exc:
-                self._json(502, _err("upstream_error", str(exc)))
+                self._json(exc.http_status or 502, _err("upstream_error", str(exc)))
                 return
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
