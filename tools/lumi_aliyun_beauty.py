@@ -129,6 +129,46 @@ PRESETS: dict[str, AliPreset] = {
     ),
 }
 
+# App 本地预设 → 云端参数映射。
+# App 发过来的是它本地 retouch_presets.json 里的 id（如 portrait.skinSoft），
+# 这里把与 FaceBeauty 能力对应的两条映射过去；其余类目明确拒绝并指路，
+# 不假装能做（见 UNMAPPABLE_HINT）。
+LOCAL_PRESET_MAP: dict[str, AliPreset] = {
+    "portrait.skinSoft": AliPreset(
+        id="portrait.skinSoft",
+        title="皮肤柔化（云端版）",
+        detail="对应 App 本地预设「皮肤柔化」：重磨皮、保锐化、轻美白。",
+        sharp=0.15, smooth=0.70, white=0.10,
+    ),
+    "portrait.brightenFace": AliPreset(
+        id="portrait.brightenFace",
+        title="面部提亮（云端版）",
+        detail="对应 App 本地预设「面部提亮」：以美白提亮为主，轻微磨皮。",
+        sharp=0.10, smooth=0.20, white=0.55,
+    ),
+}
+
+#: 本地预设里无法映射到 FaceBeauty 的类目 → 如实告知该走哪条路
+UNMAPPABLE_HINT: dict[str, str] = {
+    "enhance.": "这条是本地画质增强（锐化/降噪/去雾等），请在 App 里把执行方切回「本地」——本地算法效果相同且不花钱。",
+    "grade.": "这条是本地调色（胶片感/暖调等），FaceBeauty 没有调色参数，请在 App 里把执行方切回「本地」。",
+    "generative.": "这条是生成式改动（改内容/换天空），FaceBeauty 只做美颜不重绘画面，请把执行方切回本地或接生成式云端。",
+}
+
+
+def resolve_preset(preset_id: str) -> AliPreset:
+    """按 id 找预设：云端自有 → 本地映射 → 明确报错并指路。"""
+    preset = PRESETS.get(preset_id) or LOCAL_PRESET_MAP.get(preset_id)
+    if preset is not None:
+        return preset
+    for prefix, hint in UNMAPPABLE_HINT.items():
+        if preset_id.startswith(prefix):
+            raise AliError(f"预设 {preset_id!r} 不走云端美颜：{hint}")
+    raise AliError(
+        f"未知预设 {preset_id!r}。云端美颜可用："
+        f"{', '.join(list(PRESETS) + list(LOCAL_PRESET_MAP))}"
+    )
+
 
 def build_request(preset: AliPreset, intensity: int) -> dict[str, float]:
     """把一条预设 + 用户强度，翻译成 FaceBeauty 的三个 0~1 参数。
@@ -278,10 +318,26 @@ def selftest() -> int:
     check("强度负值被夹住（-20 → 等同 0）", build_request(p, -20) == r0)
 
     print("\n=== 2. 每条预设都能构造出合法参数 ===")
-    for pid, preset in PRESETS.items():
+    for pid, preset in list(PRESETS.items()) + list(LOCAL_PRESET_MAP.items()):
         r = build_request(preset, 60)
         ok = all(0.0 <= v <= 1.0 for v in r.values()) and set(r) == {"Sharp", "Smooth", "White"}
         check(f"{pid} 参数合法", ok, str(r))
+
+    print("\n=== 2.5 本地预设映射（App 发本地 id 也能走通）===")
+    try:
+        p = resolve_preset("portrait.skinSoft")
+        check("portrait.skinSoft → 云端参数", build_request(p, 60)["Smooth"] > 0.3, str(build_request(p, 60)))
+        p = resolve_preset("portrait.brightenFace")
+        check("portrait.brightenFace → 提亮为主", build_request(p, 60)["White"] > build_request(p, 60)["Smooth"],
+              str(build_request(p, 60)))
+    except AliError as exc:
+        check("本地预设映射", False, str(exc))
+    for bad, prefix in [("enhance.auto", "enhance."), ("grade.film", "grade."), ("generative.skyReplace", "generative.")]:
+        try:
+            resolve_preset(bad)
+            check(f"{bad} 被明确拒绝", False, "竟然通过了")
+        except AliError as exc:
+            check(f"{bad} 被明确拒绝且提示切回本地", prefix in str(exc) or "切回" in str(exc), str(exc)[:80])
 
     print("\n=== 3. multipart 解析（与 App 同形态） ===")
     from lumi_volc_beauty import _parse_multipart  # noqa: PLC0415 —— 复用同一实现
@@ -296,6 +352,8 @@ def selftest() -> int:
     print("\n=== 4. 诚实性：不提供能力外的预设 ===")
     check("没有假装的瘦脸/美体预设", all("slim" not in k and "body" not in k for k in PRESETS),
           str(list(PRESETS)))
+    check("本地映射只收 portrait.*（不越界）",
+          all(k.startswith("portrait.") for k in LOCAL_PRESET_MAP), str(list(LOCAL_PRESET_MAP)))
 
     print()
     if failures:
@@ -342,7 +400,8 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
                 return
             if self.path.startswith("/presets"):
                 self._json(200, {"presets": [
-                    {"id": p.id, "title": p.title, "detail": p.detail} for p in PRESETS.values()
+                    {"id": p.id, "title": p.title, "detail": p.detail}
+                    for p in list(PRESETS.values()) + list(LOCAL_PRESET_MAP.values())
                 ]})
                 return
             self._json(404, {"error": "not found"})
@@ -369,9 +428,10 @@ def serve(host: str, port: int, token: str, debug: bool) -> int:
                 intensity = int(float(fields.get("intensity") or "60"))
             except ValueError:
                 intensity = 60
-            preset = PRESETS.get(preset_id)
-            if preset is None:
-                self._json(400, {"error": f"未知预设 {preset_id!r}", "available": list(PRESETS)})
+            try:
+                preset = resolve_preset(preset_id)
+            except AliError as exc:
+                self._json(400, {"error": str(exc)})
                 return
             try:
                 result = AliBeautyClient(ak, sk, debug=debug).beautify(image, preset, intensity)
@@ -450,10 +510,7 @@ def main(argv: list[str] | None = None) -> int:
         print("阿里云控制台 → AccessKey 管理 → 创建；子账号需授 AliyunVIAPIFullAccess。",
               file=sys.stderr)
         return 2
-    preset = PRESETS.get(args.preset)
-    if preset is None:
-        print(f"未知预设 {args.preset!r}，可用：{', '.join(PRESETS)}", file=sys.stderr)
-        return 2
+    preset = resolve_preset(args.preset)
     with open(args.image, "rb") as f:
         image = f.read()
     result = AliBeautyClient(ak, sk, debug=args.debug).beautify(image, preset, args.intensity)
