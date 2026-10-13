@@ -382,6 +382,22 @@ class DashScopeGenerative:
         if not prompt:
             raise AliError("生成式改动需要文字指令：在 App 的「文字指令」框里写清楚要改什么。")
         data_uri = self._prepare_image(image)
+        # 百炼对生成结果有**强制内容审核**且是随机的（生成结果每次不同）。
+        # 实测同一张「含国旗」照片：第一次被拒、原样重试即通过。
+        # 所以审核被拒时自动重试一次，仍失败才报错并如实说明。
+        last_failure: str | None = None
+        for attempt in (1, 2):
+            try:
+                return self._edit_once(data_uri, prompt)
+            except AliError as exc:
+                if "内容审核" not in str(exc) or attempt == 2:
+                    raise
+                last_failure = str(exc)
+                if self.debug:
+                    print(f"[dashscope] 审核被拒，自动重试（第 {attempt} 次）", file=sys.stderr)
+        raise AliError(last_failure or "unknown")  # pragma: no cover
+
+    def _edit_once(self, data_uri: str, prompt: str) -> bytes:
 
         # 第 1 步：提交异步任务
         payload = {
@@ -452,6 +468,10 @@ class DashScopeGenerative:
                 return raw
             if status == "FAILED":
                 message = (st.get("output") or {}).get("message") or json.dumps(st, ensure_ascii=False)[:300]
+                if "inappropriate content" in message:
+                    raise AliError(
+                        "百炼内容审核：生成结果未通过平台的强制内容审核（如国旗等敏感元素容易触发）。"
+                        "生成有随机性，可直接再试一次 —— 中继已配置自动重试。")
                 raise AliError(f"百炼任务失败：{message}")
             # PENDING / RUNNING → 继续等
         raise AliError(f"百炼任务超时（{int(self.POLL_INTERVAL * self.POLL_MAX)} 秒未完成）")
