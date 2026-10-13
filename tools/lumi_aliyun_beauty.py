@@ -218,15 +218,17 @@ class AliBeautyClient:
         if self.debug:
             print(f"[ali] POST https://{self.endpoint}/ Action={ACTION} {params}", file=sys.stderr)
 
-        request = facebody_models.FaceBeautyRequest(
+        # advance 通道：文件流封装在 FaceBeautyAdvanceRequest.image_urlobject（BinaryIO），
+        # 免 OSS 上传。注意：不是 FaceBeautyRequest + 独立 stream 参数（那是旧版签名）
+        request = facebody_models.FaceBeautyAdvanceRequest(
+            image_urlobject=io.BytesIO(image),
             sharp=params["Sharp"], smooth=params["Smooth"], white=params["White"],
         )
         runtime = util_models.RuntimeOptions(read_timeout=int(self.timeout * 1000),
                                              connect_timeout=int(self.timeout * 1000))
         client = self._client()
         try:
-            stream = io.BytesIO(image)
-            resp = client.face_beauty_advance(stream, request, runtime)
+            resp = client.face_beauty_advance(request, runtime)
         except Exception as exc:  # noqa: BLE001 —— SDK 抛的类型随版本变，统一转译
             raise AliError(f"阿里云调用失败：{type(exc).__name__}: {exc}") from exc
 
